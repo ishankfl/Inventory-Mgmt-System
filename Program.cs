@@ -19,6 +19,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
 var app = builder.Build();

@@ -16,5 +16,7 @@ namespace Inventory_Mgmt_System.Data
 
         public DbSet<Category> Categories { get; set; }
 
+
+
     }
 }

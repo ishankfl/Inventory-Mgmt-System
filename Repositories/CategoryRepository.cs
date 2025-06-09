@@ -59,11 +59,11 @@ namespace Inventory_Mgmt_System.Repositories
             }
 
             // Update properties
-            existingCategory.setName(updatedCategory.Name);
-            existingCategory.setUser(updatedCategory.User);
+            existingCategory.setName(updatedCategory.Name); // Using setter method 
+            existingCategory.setUser(updatedCategory.User); // Using setter method 
 
             // Save changes
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();  
 
             return existingCategory;
         }
