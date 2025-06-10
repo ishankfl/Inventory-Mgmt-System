@@ -6,6 +6,9 @@ namespace Inventory_Mgmt_System.Repositories
     {
         Task<User> AddUserRepo(User user);
         Task<List<User>> GetAllUser();
+        Task<User> CheckEmailAndPassword(string email, string password);
+
+        Task<User> GetUserByEmailAsync(string Email);
 
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Inventory_Mgmt_System
+﻿namespace Inventory_Mgmt_System.Dtos
 {
     public class CategoryCreateDto
     {

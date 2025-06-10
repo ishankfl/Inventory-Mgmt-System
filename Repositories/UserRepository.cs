@@ -26,5 +26,19 @@ namespace Inventory_Mgmt_System.Repositories
             var entry = await dbContext.Users.ToListAsync();
             return entry; // Return user
         }
+
+        public async Task<User> CheckEmailAndPassword(string email, string password)
+        {
+            var user =await  dbContext.Users.FirstOrDefaultAsync(data => data.Email==email && data.PasswordHash==password);
+            
+            return user;
+        }
+
+       public async Task<User> GetUserByEmailAsync(string Email)
+        {
+            var user = await dbContext.Users.FirstOrDefaultAsync(data=>data.Email==Email);
+            return user;
+        }
+
     }
 }

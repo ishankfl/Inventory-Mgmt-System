@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Mgmt_System.Services
 {
@@ -22,6 +23,21 @@ namespace Inventory_Mgmt_System.Services
             var userList = await _userRepository.GetAllUser();
             return userList;
         }
+        public async Task<User> CheckEmailAndPassword(string email, string password)
+        {
+            var user = await _userRepository.CheckEmailAndPassword(email, password);
+
+            return user;
+        }
+
+        public async Task<User> GetUserByEmailAsync(string email)
+        {
+            var user = await _userRepository.GetUserByEmailAsync(email);
+
+            return user;
+        }
+
+
 
     }
 }

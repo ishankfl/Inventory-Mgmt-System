@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,14 @@ namespace Inventory_Mgmt_System.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAllCategory()
+        {
+            var categories = await _categoryService.GetAllCategories();
+            return Ok(categories);
+        }
+
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateCategory()
         {
             var categories = await _categoryService.GetAllCategories();
             return Ok(categories);

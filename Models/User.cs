@@ -18,6 +18,8 @@ namespace Inventory_Mgmt_System.Models
         public string Email { get; set; }
         [Required]
         public string PasswordHash { get; set; }
+        public string PasswordSalt { get; set; }
+
         [Required]
         public UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
