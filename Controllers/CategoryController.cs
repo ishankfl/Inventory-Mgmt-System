@@ -15,10 +15,22 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCategory(Category category)
+        public async Task<IActionResult> AddCategory(CategoryCreateDto categorydto)
         {
+            Category category = new Category
+            {
+                Name = categorydto.Name,
+                UserId = categorydto.UserId,
+            };
             var createdCategory = await _categoryService.CreateCategory(category);
             return Ok(createdCategory);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllCategory()
+        {
+            var categories = await _categoryService.GetAllCategories();
+            return Ok(categories);
         }
 
     }

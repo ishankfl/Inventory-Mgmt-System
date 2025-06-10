@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Inventory_Mgmt_System.Models
 {
@@ -9,15 +10,15 @@ namespace Inventory_Mgmt_System.Models
         public Guid Id { get; set; }
 
         [Required]
+        [MaxLength(100)]
         public string Name { get; set; }
 
-        // Navigation Property
-        public User User { get; set; }
+        [ForeignKey("User")]
+        public Guid UserId { get; set; }
+        public virtual User User { get; set; }
 
-        // Parameterless constructor for EF
         public Category() { }
 
-        // Constructor for convenience
         public Category(string name)
         {
             Name = name;
@@ -26,13 +27,11 @@ namespace Inventory_Mgmt_System.Models
         internal void setName(string name)
         {
             this.Name = name;
-            throw new NotImplementedException();
         }
 
         internal void setUser(User user)
         {
             this.User = user;
-            throw new NotImplementedException();
         }
     }
 }
