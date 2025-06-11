@@ -13,15 +13,21 @@ namespace Inventory_Mgmt_System.Models
         [MaxLength(100)]
         public string Name { get; set; }
 
+
+        [Required]
+        [MaxLength(100)]
+        public string Description { get; set; }
+
         [ForeignKey("User")]
         public Guid UserId { get; set; }
         public virtual User User { get; set; }
 
         public Category() { }
 
-        public Category(string name)
+        public Category(string name, string description)
         {
             Name = name;
+            Description = description;
         }
 
         internal void setName(string name)

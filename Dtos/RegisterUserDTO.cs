@@ -15,7 +15,7 @@ namespace Inventory_Mgmt_System.Dtos
         public string Password { get; set; }  // Plaintext password input
 
         [Required]
-        public UserRole Role { get; set; }
+       public int Role { get; set; }
     }
 
 }

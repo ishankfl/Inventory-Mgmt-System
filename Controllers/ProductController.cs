@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -38,14 +39,37 @@ namespace Inventory_Mgmt_System.Controllers
 
         // POST: api/Product
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Product product)
+        public async Task<IActionResult> Create([FromBody] AddProductDto productDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var createdProduct = await _productService.CreateProductAsync(product);
-            return CreatedAtAction(nameof(Details), new { id = createdProduct.Id }, createdProduct);
+            try
+            {
+             
+
+                // Manually map DTO to Product
+                var product = new Product
+                {
+                    Id = Guid.NewGuid(),
+                    Name = productDto.Name,
+                    Description = productDto.Description,
+                    Quantity = productDto.Quantity,
+                    Price = productDto.Price,
+                    CategoryId = productDto.CategoryId,
+                    UserId = productDto.UserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+             
+                var createdProduct = await _productService.CreateProductAsync(product);
+                return Ok( createdProduct);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
 
         // PUT: api/Product/{id}
         [HttpPut("{id}")]
@@ -66,8 +90,9 @@ namespace Inventory_Mgmt_System.Controllers
 
         // DELETE: api/Product/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(string idInString)
         {
+            Guid id = Guid.Parse(idInString);
             var product = await _productService.GetProductByIdAsync(id);
             if (product == null)
                 return NotFound();

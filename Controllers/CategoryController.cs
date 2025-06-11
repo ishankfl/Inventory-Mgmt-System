@@ -22,6 +22,7 @@ namespace Inventory_Mgmt_System.Controllers
             {
                 Name = categorydto.Name,
                 UserId = categorydto.UserId,
+                Description = categorydto.Description,
             };
             var createdCategory = await _categoryService.CreateCategory(category);
             return Ok(createdCategory);

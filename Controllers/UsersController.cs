@@ -35,7 +35,7 @@ namespace Inventory_Mgmt_System.Controllers
                 Email = request.Email,
                 PasswordHash = Convert.ToBase64String(hash),
                 PasswordSalt = Convert.ToBase64String(salt),
-                Role = request.Role
+                Role =  request.Role == 1? UserRole.Admin : UserRole.Staff,
             };
 
             
