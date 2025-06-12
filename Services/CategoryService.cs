@@ -40,5 +40,16 @@ namespace Inventory_Mgmt_System.Services
             var existingCategory = await _categoryRepository.UpdateCategory(updatedCategory);
             return existingCategory;
         }
+        public async Task<Category> DeleteCategory(Guid id)
+        {
+            var category = await  _categoryRepository.DeleteCategory(id);
+            if (category == null)
+            {
+                throw new KeyNotFoundException($"Category with ID {id} not found.");
+            }
+
+            return category;
+        }
+
     }
 }

@@ -67,6 +67,17 @@ namespace Inventory_Mgmt_System.Repositories
 
             return existingCategory;
         }
+        public async Task<Category> DeleteCategory(Guid id)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(caty => caty.Id == id);
+            if (category == null)
+            {
+                throw new KeyNotFoundException($"Category with ID {id} not found.");
+            }
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+            return category;
+        }
 
     }
 }

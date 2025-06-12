@@ -83,6 +83,9 @@ namespace Inventory_Mgmt_System.Repositories
             existingProduct.Name = updatedProduct.Name;
             existingProduct.CategoryId = updatedProduct.CategoryId;
             existingProduct.UserId = updatedProduct.UserId;
+            existingProduct.Price = updatedProduct.Price;
+            existingProduct.Quantity= updatedProduct.Quantity;
+
 
 
             await _context.SaveChangesAsync();

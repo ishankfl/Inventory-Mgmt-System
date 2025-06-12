@@ -43,5 +43,31 @@ namespace Inventory_Mgmt_System.Controllers
             return Ok(categories);
         }
 
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(Guid id)
+        {
+            var categories = await _categoryService.DeleteCategory(id);
+            return Ok(categories);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoryById(Guid id)
+        {
+            var categories = await _categoryService.GetCategoryById(id);
+            return Ok(categories);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory(Guid id, CategoryCreateDto category)
+        {
+            var categories = await _categoryService.GetCategoryById(id);
+            categories.setName(category.Name);
+            categories.Description = category.Description;
+
+            var updatedCategory = await _categoryService.UpdateCategory(categories);
+            return Ok(updatedCategory);
+        }
+
     }
 }

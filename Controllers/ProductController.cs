@@ -2,6 +2,7 @@
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.JSInterop.Infrastructure;
 using System;
 using System.Threading.Tasks;
 
@@ -28,13 +29,22 @@ namespace Inventory_Mgmt_System.Controllers
 
         // GET: api/Product/{id}
         [HttpGet("{id}")]
-        public async Task<IActionResult> Details(Guid id)
+        public async Task<IActionResult> Details(string id)
         {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-                return NotFound();
+            try
+            {
 
-            return Ok(product);
+                Guid pId = Guid.Parse(id);
+                var product = await _productService.GetProductByIdAsync(pId);
+                if (product == null)
+                    return NotFound();
+
+                return Ok(product);
+            }
+            catch (Exception ex) { 
+                return BadRequest(ex.Message);
+            }
+
         }
 
         // POST: api/Product
@@ -71,15 +81,22 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
 
-        // PUT: api/Product/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Edit(Guid id, [FromBody] Product product)
+        public async Task<IActionResult> Edit(string id, [FromBody] AddProductDto dto)
         {
-            if (id != product.Id)
-                return BadRequest("Product ID mismatch");
-
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            
+            Product product = new Product
+            {
+                Id = Guid.Parse(id),  // 
+                Name = dto.Name,
+                Description = dto.Description,
+                Quantity = dto.Quantity,
+                Price = dto.Price,
+                CategoryId = dto.CategoryId,
+                UserId = dto.UserId
+            };
 
             var updatedProduct = await _productService.UpdateProductAsync(product);
             if (updatedProduct == null)
@@ -87,6 +104,7 @@ namespace Inventory_Mgmt_System.Controllers
 
             return Ok(updatedProduct);
         }
+
 
         // DELETE: api/Product/{id}
         [HttpDelete("{id}")]

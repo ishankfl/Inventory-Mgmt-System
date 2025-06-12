@@ -10,5 +10,6 @@ namespace Inventory_Mgmt_System.Services
 
         Task<List<Category>> GetCategoryByUser(Guid id);
         Task<Category> UpdateCategory(Category updatedCategory);
+        Task<Category> DeleteCategory(Guid id);
     }
 }
