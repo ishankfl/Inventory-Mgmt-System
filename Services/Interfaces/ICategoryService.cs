@@ -11,5 +11,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<List<Category>> GetCategoryByUser(Guid id);
         Task<Category> UpdateCategory(Category updatedCategory);
         Task<Category> DeleteCategory(Guid id);
+
+        Task<Category> GetCategoryByName(string name);
     }
 }

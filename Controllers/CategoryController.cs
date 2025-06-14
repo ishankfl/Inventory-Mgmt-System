@@ -27,12 +27,20 @@ namespace Inventory_Mgmt_System.Controllers
             };
             try
             {
+                var isExistCategory = await _categoryService.GetCategoryByName(categorydto.Name);
+                if (isExistCategory!= null)
+                {
+                    return StatusCode(409, $"Category with this name already exist:");
+
+                }
                 var createdCategory = await _categoryService.CreateCategory(category);
                 return Ok(createdCategory);
 
             }
-            catch (Exception ex) { 
-                return BadRequest(ex.Message);
+            catch (Exception ex) {
+                return StatusCode(500, $"Something went wrong {ex.Message}");
+
+                //return BadRequest(ex.Message);
             }
         }
 

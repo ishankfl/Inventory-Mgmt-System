@@ -51,14 +51,14 @@ namespace Inventory_Mgmt_System.Data
      .HasOne(pi => pi.Department)
      .WithMany()
      .HasForeignKey(pi => pi.DepartmentId)
-     .OnDelete(DeleteBehavior.Restrict);
+     .OnDelete(DeleteBehavior.Cascade);
 
             // ProductIssue -> IssuedBy (User) (many-to-one)
             modelBuilder.Entity<ProductIssue>()
                 .HasOne(pi => pi.IssuedBy)
                 .WithMany()
                 .HasForeignKey(pi => pi.IssuedById)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // IssueItem -> ProductIssue (many-to-one)
             modelBuilder.Entity<IssueItem>()
@@ -72,7 +72,7 @@ namespace Inventory_Mgmt_System.Data
                 .HasOne(ii => ii.Product)
                 .WithMany()
                 .HasForeignKey(ii => ii.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }

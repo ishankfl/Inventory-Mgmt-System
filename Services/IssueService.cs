@@ -53,6 +53,36 @@ namespace Inventory_Mgmt_System.Services
             }
         }
 
+        public async Task<ProductIssue> IssueProductOneAsync(Guid departmentId, Guid issuedById, IssueItemDto item)
+        {
+            if (item == null)
+                throw new ArgumentException("No items to issue.");
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Get or create the active issue for this department
+                var activeIssue = await GetOrCreateActiveIssue(departmentId, issuedById);
+
+                // Process each item
+               /* foreach (var item in items)
+                {*/
+                    await ProcessIssueItem(activeIssue, item);
+                
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return await _issueRepository.GetIssueByIdAsync(activeIssue.Id);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
         private async Task<ProductIssue> GetOrCreateActiveIssue(Guid departmentId, Guid issuedById)
         {
             var activeIssue = await _issueRepository.GetLatestUncompletedIssueByDepartmentAsync(departmentId);

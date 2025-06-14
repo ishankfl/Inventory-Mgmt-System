@@ -19,6 +19,30 @@ namespace Inventory_Mgmt_System.Controllers
             _issueService = issueService;
         }
 
+        [HttpPost("OneProduct")]
+        public async Task<IActionResult> CreateIssue([FromBody] IssueRequestDtoOne request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _issueService.IssueProductOneAsync(
+                  request.DepartmentId,
+                  request.IssuedById,
+                  request.Item);
+
+                return StatusCode(200, new { data = result });
+
+            }
+
+            catch (Exception ex) {
+                return StatusCode(500, "Something went wrong");
+            }
+
+        }
         [HttpPost]
         public async Task<IActionResult> CreateIssue([FromBody] IssueRequestDto request)
         {
@@ -50,6 +74,7 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { error = "An unexpected error occurred." });
             }
         }
+        
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetIssue(Guid id)

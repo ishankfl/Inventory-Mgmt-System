@@ -32,6 +32,12 @@ namespace Inventory_Mgmt_System.Repositories
             }
             return category;
         }
+        public async Task<Category> GetCategoryByName(string name)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(caty => caty.Name == name);
+  
+            return category;
+        }
 
         public async Task<List<Category>> GetAllCategories()
         {

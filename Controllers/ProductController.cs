@@ -61,9 +61,7 @@ namespace Inventory_Mgmt_System.Controllers
                 {
                     return StatusCode(409, $"Product with this name already exist:");
 
-
                 }
-
 
                 // Manually map DTO to Product
                 var product = new Product

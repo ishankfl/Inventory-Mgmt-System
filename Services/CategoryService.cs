@@ -24,6 +24,12 @@ namespace Inventory_Mgmt_System.Services
             return category;
         }
 
+        public async Task<Category> GetCategoryByName(string name)
+        {
+            var category = await _categoryRepository.GetCategoryByName(name);
+            return category;
+        }
+
         public async Task<List<Category>> GetAllCategories()
         {
             var category = await _categoryRepository.GetAllCategories();

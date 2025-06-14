@@ -12,5 +12,6 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<ProductIssue?> GetIssueByIdAsync(Guid id);
         Task<IEnumerable<ProductIssue>> GetAllIssuesAsync();
         Task CompleteIssueAsync(Guid issueId);
+        Task<ProductIssue> IssueProductOneAsync(Guid departmentId, Guid issuedById, IssueItemDto item);
     }
 }
