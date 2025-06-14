@@ -1,6 +1,6 @@
 ﻿using Inventory_Mgmt_System.Models;
 
-namespace Inventory_Mgmt_System.Repositories
+namespace Inventory_Mgmt_System.Repositories.Interfaces
 {
     public interface IUserRepository
     {
@@ -9,6 +9,7 @@ namespace Inventory_Mgmt_System.Repositories
         Task<User> CheckEmailAndPassword(string email, string password);
 
         Task<User> GetUserByEmailAsync(string Email);
+        Task<User> DeleteUserById(Guid id);
 
     }
 }

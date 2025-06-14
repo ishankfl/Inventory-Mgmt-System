@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Repositories;
+using Inventory_Mgmt_System.Repositories.Interfaces;
+using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Mgmt_System.Services

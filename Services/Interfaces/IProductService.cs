@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Inventory_Mgmt_System.Services
+namespace Inventory_Mgmt_System.Services.Interfaces
 {
     public interface IProductService
     {

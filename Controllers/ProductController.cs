@@ -1,6 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Services;
+using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.JSInterop.Infrastructure;
 using System;
@@ -107,7 +107,7 @@ namespace Inventory_Mgmt_System.Controllers
 
 
         // DELETE: api/Product/{id}
-        [HttpDelete("{id}")]
+        [HttpDelete("{idInString}")]
         public async Task<IActionResult> Delete(string idInString)
         {
             Guid id = Guid.Parse(idInString);

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using Inventory_Mgmt_System.Repositories.Interfaces;
 
 namespace Inventory_Mgmt_System.Repositories
 {
@@ -85,6 +86,7 @@ namespace Inventory_Mgmt_System.Repositories
             existingProduct.UserId = updatedProduct.UserId;
             existingProduct.Price = updatedProduct.Price;
             existingProduct.Quantity= updatedProduct.Quantity;
+            existingProduct.Description = updatedProduct.Description; ;
 
 
 

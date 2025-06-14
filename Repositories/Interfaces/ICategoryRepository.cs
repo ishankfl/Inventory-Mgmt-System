@@ -1,6 +1,6 @@
 ﻿using Inventory_Mgmt_System.Models;
 
-namespace Inventory_Mgmt_System.Repositories
+namespace Inventory_Mgmt_System.Repositories.Interfaces
 {
     public interface ICategoryRepository
     {
@@ -11,8 +11,8 @@ namespace Inventory_Mgmt_System.Repositories
         Task<List<Category>> GetCategoryByUser(Guid id);
         Task<List<Category>> GetAllCategories();
         Task<Category> DeleteCategory(Guid id);
-      /*  Task<Category> GetCategoryById(Guid id);
-        Task<Category> CreateCategory(Category category)*/
+        /*  Task<Category> GetCategoryById(Guid id);
+          Task<Category> CreateCategory(Category category)*/
 
     }
 }

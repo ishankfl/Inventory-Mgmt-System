@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Data;
 using Inventory_Mgmt_System.Models;
+using Inventory_Mgmt_System.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,14 @@ namespace Inventory_Mgmt_System.Repositories
         public CategoryRepository(AppDbContext context) { 
             this._context = context;
         }
-        public async  Task<Category> CreateCategory(Category category)
+        public async Task<Category> CreateCategory(Category category)
         {
-            var updated = await  _context.Categories.AddAsync(category);
-            await _context.SaveChangesAsync();
-            return updated.Entity;
+            {
+                var updated = await _context.Categories.AddAsync(category);
+                await _context.SaveChangesAsync();
+                return updated.Entity;
+
+            }
         }
 
         public async Task<Category> GetCategoryById(Guid id)
@@ -31,12 +35,9 @@ namespace Inventory_Mgmt_System.Repositories
 
         public async Task<List<Category>> GetAllCategories()
         {
-            var category = await _context.Categories.ToListAsync();
-            if (category == null)
-            {
-                return [];
-            }
-            return category;
+            return await _context.Categories
+                .Include(c => c.User) // Include user details
+                .ToListAsync();
         }
 
         public async Task<List<Category>> GetCategoryByUser(Guid id)

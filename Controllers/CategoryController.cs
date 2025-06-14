@@ -1,6 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Services;
+using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,12 +20,20 @@ namespace Inventory_Mgmt_System.Controllers
         {
             Category category = new Category
             {
+                Id= Guid.NewGuid(),
                 Name = categorydto.Name,
                 UserId = categorydto.UserId,
                 Description = categorydto.Description,
             };
-            var createdCategory = await _categoryService.CreateCategory(category);
-            return Ok(createdCategory);
+            try
+            {
+                var createdCategory = await _categoryService.CreateCategory(category);
+                return Ok(createdCategory);
+
+            }
+            catch (Exception ex) { 
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet]

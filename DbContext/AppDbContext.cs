@@ -1,8 +1,8 @@
 ﻿using Inventory_Mgmt_System.Models;           // Importing model classes (e.g., User)
 using Microsoft.EntityFrameworkCore;          // Importing EF Core features like DbContext and DbSet
 
-namespace Inventory_Mgmt_System.Data 
-{    
+namespace Inventory_Mgmt_System.Data
+{
     /// AppDbContext represents the session with the database and provides APIs to interact with the data.
     public class AppDbContext : DbContext
     {
@@ -17,6 +17,11 @@ namespace Inventory_Mgmt_System.Data
         public DbSet<Category> Categories { get; set; }
 
         public DbSet<Product> Products { get; set; }
+
+        public DbSet<Department> Departments { get; set; }
+
+        public DbSet<ProductIssue> ProductIssues { get; set; }
+        public DbSet<IssueItem> IssueItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +45,34 @@ namespace Inventory_Mgmt_System.Data
                 .WithMany()
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade);  // Deleting Category will delete related Products
+
+
+            modelBuilder.Entity<ProductIssue>()
+     .HasOne(pi => pi.Department)
+     .WithMany()
+     .HasForeignKey(pi => pi.DepartmentId)
+     .OnDelete(DeleteBehavior.Restrict);
+
+            // ProductIssue -> IssuedBy (User) (many-to-one)
+            modelBuilder.Entity<ProductIssue>()
+                .HasOne(pi => pi.IssuedBy)
+                .WithMany()
+                .HasForeignKey(pi => pi.IssuedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // IssueItem -> ProductIssue (many-to-one)
+            modelBuilder.Entity<IssueItem>()
+                .HasOne(ii => ii.ProductIssue)
+                .WithMany(pi => pi.IssueItems)
+                .HasForeignKey(ii => ii.ProductIssueId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // IssueItem -> Product (many-to-one)
+            modelBuilder.Entity<IssueItem>()
+                .HasOne(ii => ii.Product)
+                .WithMany()
+                .HasForeignKey(ii => ii.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             base.OnModelCreating(modelBuilder);
         }

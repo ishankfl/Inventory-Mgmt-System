@@ -1,6 +1,8 @@
 ﻿using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Repositories;
+using Inventory_Mgmt_System.Repositories.Interfaces;
+using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 
 namespace Inventory_Mgmt_System.Services
 {
@@ -34,6 +36,11 @@ namespace Inventory_Mgmt_System.Services
         {
             var user = await _userRepository.GetUserByEmailAsync(email);
 
+            return user;
+        }
+        public async Task<User> DeleteUserById(Guid id)
+        {
+            var user = await _userRepository.DeleteUserById(id);
             return user;
         }
 

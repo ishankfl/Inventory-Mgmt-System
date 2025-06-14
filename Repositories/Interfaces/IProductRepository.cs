@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Inventory_Mgmt_System.Repositories
+namespace Inventory_Mgmt_System.Repositories.Interfaces
 {
     public interface IProductRepository
     {

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Inventory_Mgmt_System</RootNamespace>
+    <UserSecretsId>03650b08-840e-485d-a393-3ba3d209b5ec</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Dtos;
 using NuGet.Common;
 using Inventory_Mgmt_System.Utils;
 using Microsoft.AspNetCore.Authorization;
+using Inventory_Mgmt_System.Services.Interfaces;
 
 namespace Inventory_Mgmt_System.Controllers
 {
@@ -101,6 +101,14 @@ namespace Inventory_Mgmt_System.Controllers
 
         }
 
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<User>> DeleteUserById(string id)
+        {
+
+            var userList = await _userService.DeleteUserById(Guid.Parse(id));
+            return Ok(userList);
+
+        }
 
     }
 }
