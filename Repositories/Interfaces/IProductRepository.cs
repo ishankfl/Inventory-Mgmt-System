@@ -8,6 +8,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
     public interface IProductRepository
     {
         Task<Product> GetProductById(Guid id);
+        Task<Product> GetProductByName(string name);
 
         Task<Product> CreateProduct(Product product);
 

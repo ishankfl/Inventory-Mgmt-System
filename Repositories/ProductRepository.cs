@@ -40,6 +40,17 @@ namespace Inventory_Mgmt_System.Repositories
             return product;
         }
 
+        public async Task<Product> GetProductByName(string name)
+        {
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(p => p.Name == name);
+
+
+            return product;
+        }
+
         public async Task<List<Product>> GetAllProducts()
         {
             var products = await _context.Products

@@ -56,7 +56,14 @@ namespace Inventory_Mgmt_System.Controllers
 
             try
             {
-             
+                var isExist = await _productService.GetProductByNameAsync(productDto.Name);
+                if (isExist !=null)
+                {
+                    return StatusCode(409, $"Product with this name already exist:");
+
+
+                }
+
 
                 // Manually map DTO to Product
                 var product = new Product

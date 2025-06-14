@@ -35,6 +35,10 @@ namespace Inventory_Mgmt_System.Services
         {
             return await _productRepository.GetProductById(id);
         }
+        public async Task<Product> GetProductByNameAsync(string name)
+        {
+            return await _productRepository.GetProductByName(name);
+        }
 
         public async Task<List<Product>> GetProductsByCategoryAsync(Guid categoryId)
         {

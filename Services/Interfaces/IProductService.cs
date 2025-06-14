@@ -20,5 +20,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<List<Product>> GetProductsByUserAsync(Guid userId);
 
         Task<List<Product>> GetAllProductsAsync();
+
+        Task<Product> GetProductByNameAsync(string name);
     }
 }
