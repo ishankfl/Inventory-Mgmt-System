@@ -3,6 +3,7 @@ using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Mgmt_System.Services
@@ -58,7 +59,7 @@ namespace Inventory_Mgmt_System.Services
             if (item == null)
                 throw new ArgumentException("No items to issue.");
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+         //   await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
@@ -72,13 +73,13 @@ namespace Inventory_Mgmt_System.Services
                 
 
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
+              //  await transaction.CommitAsync();
 
                 return await _issueRepository.GetIssueByIdAsync(activeIssue.Id);
             }
             catch
             {
-                await transaction.RollbackAsync();
+                //await transaction.RollbackAsync();
                 throw;
             }
         }
@@ -95,7 +96,7 @@ namespace Inventory_Mgmt_System.Services
                     DepartmentId = departmentId,
                     IssuedById = issuedById,
                     IssueDate = DateTime.UtcNow,
-                    IsCompleted = true
+                    IsCompleted = false
                 };
 
                 await _issueRepository.CreateIssueAsync(activeIssue);
@@ -161,5 +162,46 @@ namespace Inventory_Mgmt_System.Services
             issue.IsCompleted = true;
             await _context.SaveChangesAsync();
         }
+
+        public async Task<ProductIssue> GetIssuesByDepartmentId(string departmentId)
+        {
+            var productIssue = await _issueRepository.GetIssuesByDepartmentId(departmentId);
+            return productIssue;
+        }
+        public async Task<ProductIssue> RemoveItemFromIssue(string issueId, string productId)
+        {
+            var issueGuid = Guid.Parse(issueId);
+            var productGuid = Guid.Parse(productId);
+
+            // Get the full issue with its items
+            var issue = await GetIssueByIdAsync(issueGuid);
+            if (issue == null)
+                throw new Exception("Issue not found");
+
+            // Find the issue item to be removed
+            var itemToRemove = issue.IssueItems.FirstOrDefault(i => i.ProductId == productGuid);
+            if (itemToRemove == null)
+                throw new Exception("Product not found in issue");
+
+            // Remove item from issue and database
+            issue.IssueItems.Remove(itemToRemove);
+            _context.IssueItems.Remove(itemToRemove); // or _issueRepository
+
+            // Get the product to update quantity
+            var product = await _productRepository.GetProductById(productGuid);
+            if (product == null)
+                throw new Exception("Product not found");
+
+            // Add the quantity back to product stock
+            product.Quantity += itemToRemove.QuantityIssued;
+
+            // Update the product
+           await  _productRepository.UpdateProduct(product);
+            await _context.SaveChangesAsync();
+            // Save changes
+            return issue;
+        }
+
+
     }
 }

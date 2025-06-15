@@ -23,6 +23,7 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         // POST: api/Users
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(RegisterUserDTO request)
         {
@@ -70,7 +71,7 @@ namespace Inventory_Mgmt_System.Controllers
             }
 
             // 3. Generate JWT token
-            string token = JwtUtils.GenerateJwtToken(user);
+            string token = JwtUtils.GenerateJwtToken(user );
 
             // 4. Return token as a dictionary (or just return it as a string if preferred)
             var dict = new Dictionary<string, string?>
@@ -100,14 +101,17 @@ namespace Inventory_Mgmt_System.Controllers
             return Ok(userList);
 
         }
-
+        [Authorize(Roles ="Admin")]
         [HttpDelete("{id}")]
         public async Task<ActionResult<User>> DeleteUserById(string id)
         {
+            var user = await _userService.DeleteUserById(Guid.Parse(id));
+            if (user == null)
+            {
+                return NotFound($"No user found with ID {id}");
+            }
 
-            var userList = await _userService.DeleteUserById(Guid.Parse(id));
-            return Ok(userList);
-
+            return Ok(user); // returns the deleted user
         }
 
     }

@@ -27,7 +27,11 @@ namespace Inventory_Mgmt_System.Dtos
         public Guid IssuedById { get; set; }
 
         [Required]
-        [MinLength(1, ErrorMessage = "At least one item is required.")]
-        public IssueItemDto Item { get; set; }
+        public Guid ProductId { get; set; }
+
+        [Required]
+        public int QuantityIssued { get; set; }
+
     }
+
 }

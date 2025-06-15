@@ -1,7 +1,9 @@
 ﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol;
 using System;
 using System.Threading.Tasks;
 
@@ -29,10 +31,15 @@ namespace Inventory_Mgmt_System.Controllers
 
             try
             {
+                IssueItemDto item = new IssueItemDto
+                {
+                    ProductId = request.ProductId,
+                    QuantityIssued = request.QuantityIssued,
+                };
                 var result = await _issueService.IssueProductOneAsync(
                   request.DepartmentId,
                   request.IssuedById,
-                  request.Item);
+                  item);
 
                 return StatusCode(200, new { data = result });
 
@@ -121,5 +128,39 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { error = "Failed to complete issue." });
             }
         }
+
+        [HttpGet("deptId/{departmentId}")]
+        public async Task<IActionResult> GetIssuesByDepartmentId(string departmentId)
+        {
+            try
+            {
+
+                var result = await _issueService.GetIssuesByDepartmentId(departmentId);
+                if(result == null)
+                {
+                    return StatusCode(204, "[]");
+                }
+                return Ok(result);
+            }
+            catch (Exception e) {
+                return StatusCode(500, "{'error': 'Something went wrong'}");
+            }
+        }
+
+        [HttpDelete("removeItem/{issueId}/Product/{productId}")]
+        public async Task<IActionResult> RemoveItemFromIssue(string issueId, string productId)
+        {
+            try
+            {
+                var result = await _issueService.RemoveItemFromIssue(issueId, productId);
+                return Ok(new { success = true, message = "Item removed from issue", updated = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+
     }
 }

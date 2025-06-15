@@ -12,16 +12,23 @@ namespace Inventory_Mgmt_System.Utils
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes("ThisIsAStrongSecretKey123!123123123123");
+
             var claims = new[]
- {
-    new Claim("email", user.Email.ToString()),
-    new Claim("id", user.Id.ToString()) // 👈 Add the ID here
-};
+            {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(JwtRegisteredClaimNames.Iss,"InventoryMgmtAPI"),
+        new Claim(JwtRegisteredClaimNames.Aud, "InventoryMgmtAPI"),
+        new Claim("id", user.Id.ToString()),
+        new Claim(ClaimTypes.Role, user.Role == 0 ? "Admin" : "Staff"),
+    };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddDays(7),
+                Issuer = "InventoryMgmtAPI",
+                Audience = "InventoryMgmtAPI",
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature
@@ -31,7 +38,8 @@ namespace Inventory_Mgmt_System.Utils
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
-
     }
 }
+/*
+"Key": "ThisIsAStrongSecretKey123!123123123123",
+    "Issuer": "InventoryMgmtAPI"*/
