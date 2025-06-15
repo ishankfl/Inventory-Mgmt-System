@@ -77,6 +77,23 @@ namespace Inventory_Mgmt_System.Repositories
 
             return latestProduct;
         }
+        public async Task<ProductIssue?> MakeCompleteIssue(Guid issueId)
+        {
+            var issue = await _context.ProductIssues.FirstOrDefaultAsync(item => item.Id == issueId);
+
+            if (issue == null)
+            {
+                return null; // or throw an exception, depending on your use case
+            }
+
+            issue.IsCompleted = true;
+
+            _context.ProductIssues.Update(issue);
+            await _context.SaveChangesAsync();
+
+            return issue;
+        }
+
 
         public async Task<ProductIssue> RemoveItemFromIssue(Guid issueId, ProductIssue product)
         {

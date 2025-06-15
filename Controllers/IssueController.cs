@@ -11,7 +11,7 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
     [Route("api/issues")]
-  /*  [Authorize(Roles = "Admin,Staff")] */
+    /*  [Authorize(Roles = "Admin,Staff")] */
     public class IssueController : ControllerBase
     {
         private readonly IIssueService _issueService;
@@ -45,7 +45,8 @@ namespace Inventory_Mgmt_System.Controllers
 
             }
 
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return StatusCode(500, "Something went wrong");
             }
 
@@ -65,7 +66,7 @@ namespace Inventory_Mgmt_System.Controllers
                     request.IssuedById,
                     request.Items);
 
-                                return StatusCode(200, new { data = result });
+                return StatusCode(200, new { data = result });
 
             }
             catch (KeyNotFoundException ex)
@@ -81,7 +82,7 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { error = "An unexpected error occurred." });
             }
         }
-        
+
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetIssue(Guid id)
@@ -136,17 +137,18 @@ namespace Inventory_Mgmt_System.Controllers
             {
 
                 var result = await _issueService.GetIssuesByDepartmentId(departmentId);
-                if(result == null)
+                if (result == null)
                 {
                     return StatusCode(204, "[]");
                 }
                 return Ok(result);
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 return StatusCode(500, "{'error': 'Something went wrong'}");
             }
         }
-
+        [Authorize]
         [HttpDelete("removeItem/{issueId}/Product/{productId}")]
         public async Task<IActionResult> RemoveItemFromIssue(string issueId, string productId)
         {
@@ -160,6 +162,29 @@ namespace Inventory_Mgmt_System.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+        [Authorize]
+        [HttpPost("CompleteIssue/{issueId}")]
+        public async Task<IActionResult> MakeCompleteIssue(string issueId)
+        {
+            try
+            {
+                var issue = await _issueService.MakeCompleteIssue(Guid.Parse(issueId));
+
+                if (issue == null)
+                {
+                    return NotFound(new { message = "Issue not found." });
+                }
+
+                return Ok(new { message = "Successfully completed issue." });
+            }
+            catch (Exception e)
+            {
+                // Log the exception 'e' here as needed
+                return StatusCode(500, new { message = "An error occurred while completing the issue." });
+            }
+        }
+
+
 
 
     }

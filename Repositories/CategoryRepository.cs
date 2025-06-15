@@ -10,7 +10,8 @@ namespace Inventory_Mgmt_System.Repositories
     public class CategoryRepository : ICategoryRepository
     {
         private AppDbContext _context;
-        public CategoryRepository(AppDbContext context) { 
+        public CategoryRepository(AppDbContext context)
+        {
             this._context = context;
         }
         public async Task<Category> CreateCategory(Category category)
@@ -25,7 +26,7 @@ namespace Inventory_Mgmt_System.Repositories
 
         public async Task<Category> GetCategoryById(Guid id)
         {
-            var category = await _context.Categories.FirstOrDefaultAsync(caty =>caty.Id == id);
+            var category = await _context.Categories.FirstOrDefaultAsync(caty => caty.Id == id);
             if (category == null)
             {
                 throw new KeyNotFoundException($"Category with ID {id} not found.");
@@ -35,7 +36,7 @@ namespace Inventory_Mgmt_System.Repositories
         public async Task<Category> GetCategoryByName(string name)
         {
             var category = await _context.Categories.FirstOrDefaultAsync(caty => caty.Name == name);
-  
+
             return category;
         }
 
@@ -48,7 +49,7 @@ namespace Inventory_Mgmt_System.Repositories
 
         public async Task<List<Category>> GetCategoryByUser(Guid id)
         {
-            var category = await _context.Categories.Where(category=> category.User.Id == id).ToListAsync();
+            var category = await _context.Categories.Where(category => category.User.Id == id).ToListAsync();
             if (category == null)
             {
                 return [];
@@ -70,7 +71,7 @@ namespace Inventory_Mgmt_System.Repositories
             existingCategory.setUser(updatedCategory.User); // Using setter method 
 
             // Save changes
-            await _context.SaveChangesAsync();  
+            await _context.SaveChangesAsync();
 
             return existingCategory;
         }

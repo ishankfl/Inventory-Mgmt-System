@@ -7,17 +7,17 @@ namespace Inventory_Mgmt_System.Services
 {
 
     public class DepartmentService : IDepartmentService
+    {
+        private readonly IDepartmentRepository _repository;
+
+        public DepartmentService(IDepartmentRepository repository)
         {
-            private readonly IDepartmentRepository _repository;
+            _repository = repository;
+        }
 
-            public DepartmentService(IDepartmentRepository repository)
-            {
-                _repository = repository;
-            }
-
-            public async Task<List<Department>> GetAllDepartmentsAsync()
-            {
-                var departments = await _repository.GetAllAsync();
+        public async Task<List<Department>> GetAllDepartmentsAsync()
+        {
+            var departments = await _repository.GetAllAsync();
             /*return departments.Select(d => new Department
             {
                 Id = d.Id,
@@ -28,9 +28,9 @@ namespace Inventory_Mgmt_System.Services
         }
 
         public async Task<Department?> GetDepartmentByIdAsync(Guid id)
-            {
-                var dept = await _repository.GetByIdAsync(id);
-                if (dept == null) return null;
+        {
+            var dept = await _repository.GetByIdAsync(id);
+            if (dept == null) return null;
 
             /*   return new DepartmentDto
                {
@@ -39,17 +39,17 @@ namespace Inventory_Mgmt_System.Services
                    Description = dept.Description
                };*/
             return dept;
-            }
+        }
 
-            public async Task<Department> CreateDepartmentAsync(DepartmentDto dto)
+        public async Task<Department> CreateDepartmentAsync(DepartmentDto dto)
+        {
+            var dept = new Department
             {
-                var dept = new Department
-                {
-                    Name = dto.Name,
-                    Description = dto.Description
-                };
+                Name = dto.Name,
+                Description = dto.Description
+            };
 
-                var created = await _repository.AddAsync(dept);
+            var created = await _repository.AddAsync(dept);
             /* return new DepartmentDto
              {
                  Id = created.Id,
@@ -57,32 +57,46 @@ namespace Inventory_Mgmt_System.Services
                  Description = created.Description
              };*/
             return created;
-            }
+        }
 
-            public async Task<bool> UpdateDepartmentAsync(Guid id, DepartmentDto dto)
-            {
-                var existing = await _repository.GetByIdAsync(id);
-                if (existing == null) return false;
+        public async Task<Department?> GetByNameAsync(string name)
+        {
+            var nameCheck = await _repository.GetByNameAsync(name);
+            return nameCheck;
 
-                existing.Name = dto.Name;
-                existing.Description = dto.Description;
-                await _repository.UpdateAsync(existing);
-                return true;
-            }
+        }
 
-            public async Task<bool> DeleteDepartmentAsync(Guid id)
-            {
-                var existing = await _repository.GetByIdAsync(id);
-                if (existing == null) return false;
+        public async Task<Department?> GetByIdAsync(Guid id)
+        {
+            var dept = await _repository.GetByIdAsync(id);
+            return dept;
 
-                await _repository.DeleteAsync(id);
-                return true;
-            }
+        }
+        public async Task<Department> UpdateDepartmentAsync(Guid id, DepartmentDto dto)
+        {
+            var existing = await _repository.GetByIdAsync(id);
+            existing.Name = dto.Name;
+            existing.Description = dto.Description;
+            await _repository.UpdateAsync(existing);
+            return existing;
+        }
+
+        public async Task<bool> DeleteDepartmentAsync(Guid id)
+        {
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing == null) return false;
+
+            await _repository.DeleteAsync(id);
+            return true;
+        }
 
         public Task<bool> UpdateDepartmentAsync(Guid id, Department dto)
         {
             throw new NotImplementedException();
         }
+
+    
+
 
         /*public Task<Department> CreateDepartmentAsync(Department dto)
         {

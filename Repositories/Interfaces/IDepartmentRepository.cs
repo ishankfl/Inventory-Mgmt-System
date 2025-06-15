@@ -9,5 +9,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Department> AddAsync(Department department);
         Task UpdateAsync(Department department);
         Task DeleteAsync(Guid id);
+
+        Task<Department?> GetByNameAsync(string name);
     }
 }

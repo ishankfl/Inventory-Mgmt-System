@@ -29,6 +29,13 @@ namespace Inventory_Mgmt_System.Controllers
         {
             PasswordHasher.CreatePasswordHash(request.Password, out byte[] hash, out byte[] salt);
 
+            var isExit =await  _userService.GetUserByEmailAsync(request.Email);
+            
+            if (isExit != null )
+            {
+                return StatusCode(409, new { error = "User with this email already exist" });
+            }
+
             var user = new User
             {
                 Id = Guid.NewGuid(),
@@ -36,7 +43,7 @@ namespace Inventory_Mgmt_System.Controllers
                 Email = request.Email,
                 PasswordHash = Convert.ToBase64String(hash),
                 PasswordSalt = Convert.ToBase64String(salt),
-                Role =  request.Role == 1? UserRole.Admin : UserRole.Staff,
+                Role =  request.Role == 0? UserRole.Admin : UserRole.Staff,
             };
 
             

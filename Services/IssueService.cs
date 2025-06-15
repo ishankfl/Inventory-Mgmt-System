@@ -173,33 +173,33 @@ namespace Inventory_Mgmt_System.Services
             var issueGuid = Guid.Parse(issueId);
             var productGuid = Guid.Parse(productId);
 
-            // Get the full issue with its items
             var issue = await GetIssueByIdAsync(issueGuid);
             if (issue == null)
                 throw new Exception("Issue not found");
 
-            // Find the issue item to be removed
             var itemToRemove = issue.IssueItems.FirstOrDefault(i => i.ProductId == productGuid);
             if (itemToRemove == null)
                 throw new Exception("Product not found in issue");
 
-            // Remove item from issue and database
             issue.IssueItems.Remove(itemToRemove);
             _context.IssueItems.Remove(itemToRemove); // or _issueRepository
 
-            // Get the product to update quantity
             var product = await _productRepository.GetProductById(productGuid);
             if (product == null)
                 throw new Exception("Product not found");
 
-            // Add the quantity back to product stock
             product.Quantity += itemToRemove.QuantityIssued;
 
-            // Update the product
            await  _productRepository.UpdateProduct(product);
             await _context.SaveChangesAsync();
-            // Save changes
             return issue;
+        }
+
+        public async Task<ProductIssue> MakeCompleteIssue(Guid issueId)
+        {
+            var issue = await _issueRepository.MakeCompleteIssue(issueId);
+            return issue;
+
         }
 
 

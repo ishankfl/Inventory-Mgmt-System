@@ -14,5 +14,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<ProductIssue?> GetLatestUncompletedIssueByDepartmentAsync(Guid departmentId);
         Task<ProductIssue?> GetIssuesByDepartmentId(string departmentId);
         Task<ProductIssue> RemoveItemFromIssue(Guid issueId, ProductIssue product);
+
+        Task<ProductIssue> MakeCompleteIssue(Guid issueId);
     }
 }

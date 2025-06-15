@@ -23,6 +23,12 @@ namespace Inventory_Mgmt_System.Repositories
             return await _context.Departments.FindAsync(id);
         }
 
+
+        public async Task<Department?> GetByNameAsync(string name)
+        {
+            var dept = await _context.Departments.Where(dept => dept.Name == name).FirstOrDefaultAsync();
+            return dept;
+        }
         public async Task<Department> AddAsync(Department department)
         {
             _context.Departments.Add(department);

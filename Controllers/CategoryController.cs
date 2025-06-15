@@ -11,7 +11,8 @@ namespace Inventory_Mgmt_System.Controllers
     public class CategoryController : ControllerBase
     {
         private ICategoryService _categoryService;
-        public CategoryController(ICategoryService categoryService) { 
+        public CategoryController(ICategoryService categoryService)
+        {
             this._categoryService = categoryService;
         }
 
@@ -20,7 +21,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             Category category = new Category
             {
-                Id= Guid.NewGuid(),
+                Id = Guid.NewGuid(),
                 Name = categorydto.Name,
                 UserId = categorydto.UserId,
                 Description = categorydto.Description,
@@ -28,7 +29,7 @@ namespace Inventory_Mgmt_System.Controllers
             try
             {
                 var isExistCategory = await _categoryService.GetCategoryByName(categorydto.Name);
-                if (isExistCategory!= null)
+                if (isExistCategory != null)
                 {
                     return StatusCode(409, $"Category with this name already exist:");
 
@@ -37,7 +38,8 @@ namespace Inventory_Mgmt_System.Controllers
                 return Ok(createdCategory);
 
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return StatusCode(500, $"Something went wrong {ex.Message}");
 
                 //return BadRequest(ex.Message);
@@ -52,12 +54,6 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateCategory()
-        {
-            var categories = await _categoryService.GetAllCategories();
-            return Ok(categories);
-        }
 
 
         [HttpDelete("{id}")]
@@ -78,6 +74,12 @@ namespace Inventory_Mgmt_System.Controllers
         public async Task<IActionResult> UpdateCategory(Guid id, CategoryCreateDto category)
         {
             var categories = await _categoryService.GetCategoryById(id);
+            var categoryByName = await _categoryService.GetCategoryByName(category.Name);
+            
+            if (categoryByName != null && category.Name != categories.Name)
+            {
+                return StatusCode(409, new { message = "Category with this name already exist" });
+            }
             categories.setName(category.Name);
             categories.Description = category.Description;
 

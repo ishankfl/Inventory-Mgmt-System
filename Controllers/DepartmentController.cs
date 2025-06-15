@@ -48,15 +48,23 @@ namespace Inventory_Mgmt_System.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDepartmentById(string id, DepartmentDto dto)
         {
-        /*    Department department = new Department
-            {
+            var departmentId = Guid.Parse(id);
 
-                Description = dto.Description,
-                Name = dto.Name,
-                Id = dto.Id
-            };*/
-            var result = await _departmentService.UpdateDepartmentAsync(Guid.Parse(id), dto);
-            return Ok(result);
+            var existingDepartment = await _departmentService.GetByIdAsync(departmentId);
+            if (existingDepartment == null)
+            {
+                return NotFound(new { message = "Department not found" });
+            }
+
+            var duplicateNameDepartment = await _departmentService.GetByNameAsync(dto.Name);
+            if (duplicateNameDepartment != null && duplicateNameDepartment.Id != departmentId)
+            {
+                return BadRequest(new { message = "Department name already exists" });
+            }
+
+            var updated = await _departmentService.UpdateDepartmentAsync(departmentId, dto);
+            return Ok(new { success = true, data = updated });
         }
+
     }
 }
