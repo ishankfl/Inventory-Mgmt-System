@@ -2,6 +2,7 @@
 using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Inventory_Mgmt_System.Controllers
 {
@@ -15,6 +16,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             _departmentService = departmentService;
         }
+        [Authorize]
 
         [HttpPost]
         public async Task<IActionResult> AddDepartment([FromBody] DepartmentDto department)
@@ -37,6 +39,7 @@ namespace Inventory_Mgmt_System.Controllers
             return Ok(result);
         }
 
+        [Authorize]
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDepartmentById(string id)
@@ -44,6 +47,7 @@ namespace Inventory_Mgmt_System.Controllers
             var result = await _departmentService.DeleteDepartmentAsync(Guid.Parse(id));
             return Ok(result);
         }
+        [Authorize]
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDepartmentById(string id, DepartmentDto dto)

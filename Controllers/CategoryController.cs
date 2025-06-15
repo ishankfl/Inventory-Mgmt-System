@@ -1,6 +1,7 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +16,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             this._categoryService = categoryService;
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddCategory(CategoryCreateDto categorydto)
         {
@@ -55,7 +56,7 @@ namespace Inventory_Mgmt_System.Controllers
 
 
 
-
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
@@ -69,7 +70,7 @@ namespace Inventory_Mgmt_System.Controllers
             var categories = await _categoryService.GetCategoryById(id);
             return Ok(categories);
         }
-
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCategory(Guid id, CategoryCreateDto category)
         {
