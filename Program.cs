@@ -76,6 +76,8 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 // and use it:
+builder.Services.AddSingleton<DapperDbContext>();
+
 
 
 //var builder = WebApplication.CreateBuilder(args);

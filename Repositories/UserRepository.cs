@@ -15,21 +15,19 @@ namespace Inventory_Mgmt_System.Repositories
     public class UserRepository:IUserRepository
     {
         private AppDbContext dbContext;
-        private readonly IConfiguration configuration;
-        public UserRepository(AppDbContext _dbcontext, IConfiguration configuration)
+        private  DapperDbContext dapperDbContext;
+        public UserRepository(AppDbContext _dbcontext, DapperDbContext dapperContext)
         {
             this.dbContext = _dbcontext;
-            this.configuration = configuration; 
+            this.dapperDbContext = dapperContext; 
         }
 
 
         public async Task<List<User>> GetAllUser()
         {
             var users = new List<User>();
-            string connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            using (IDbConnection dbConnection = new NpgsqlConnection(connectionString))
-
+            using (var dbConnection = dapperDbContext.CreateConnection())
             {
                 dbConnection.Open();
                 var usersQuery = await dbConnection.QueryAsync<User>("SELECT * FROM USER;");
@@ -38,20 +36,45 @@ namespace Inventory_Mgmt_System.Repositories
 
         }
 
-        // Method for add new user or Register
         public async Task<User> AddUserRepo(User user)
         {
+            using (var dbConnection = dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
 
-            var entry = await dbContext.Users.AddAsync(user);
-            await dbContext.SaveChangesAsync();
-            return entry.Entity; // Return user
+
+                string insertQuery = @"
+            INSERT INTO ""Users"" (""Id"", ""FullName"", ""Email"", ""PasswordHash"", ""CreatedAt"", ""Role"", ""PasswordSalt"")
+            VALUES (@Id, @FullName, @Email, @PasswordHash, @CreatedAt, @Role, @PasswordSalt)
+            RETURNING ""Id"";";
+
+                // Make sure CreatedAt is set
+                var createdAt = DateTime.UtcNow;
+
+                var userId = await dbConnection.ExecuteScalarAsync<Guid>(insertQuery, new
+                {
+                    user.Id,
+                    user.FullName,
+                    user.Email, 
+                    user.PasswordHash,
+                    CreatedAt = createdAt,
+                    user.Role,
+                    user.PasswordSalt
+                    
+                });
+
+
+                return user;
+            }
         }
+
+
         // Method for get all users
-      /*  public async Task<List<User>> GetAllUser()
-        {
-            var entry = await dbContext.Users.ToListAsync();
-            return entry; // Return user
-        }*/
+        /*  public async Task<List<User>> GetAllUser()
+          {
+              var entry = await dbContext.Users.ToListAsync();
+              return entry; // Return user
+          }*/
 
         public async Task<User> CheckEmailAndPassword(string email, string password)
         {
