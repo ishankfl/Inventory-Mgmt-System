@@ -24,6 +24,7 @@ namespace Inventory_Mgmt_System.Repositories
             }
         }
 
+
         public async Task<Category> GetCategoryById(Guid id)
         {
             var category = await _context.Categories.FirstOrDefaultAsync(caty => caty.Id == id);

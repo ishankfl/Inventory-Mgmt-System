@@ -1,14 +1,15 @@
-using Inventory_Mgmt_System.Data;
+﻿using Inventory_Mgmt_System.Data;
+using Inventory_Mgmt_System.Hubs;
 using Inventory_Mgmt_System.Repositories;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,12 +42,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = true;
     });
+
+
+//for signal r
+builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+
 
 
 builder.Services.AddAuthorization();
@@ -67,6 +75,9 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IIssueService, IssueService>();
+// and use it:
+
+
 //var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(options =>
@@ -77,6 +88,8 @@ builder.WebHost.ConfigureKestrel(options =>
        // listenOptions.UseHt/**/
     });
 });
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -87,7 +100,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// and use it:
 
 
 
@@ -110,6 +122,11 @@ app.UseAuthorization();
 app.UseCors("AllowAll");
 
 
+
+
+// addingchathub for send message
 app.MapControllers();
+
+// Register the service
 
 app.Run();
