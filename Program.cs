@@ -76,6 +76,10 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 // and use it:
+//Dashboard service registering
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+
 builder.Services.AddSingleton<DapperDbContext>();
 
 

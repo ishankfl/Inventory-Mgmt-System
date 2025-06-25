@@ -120,5 +120,16 @@ namespace Inventory_Mgmt_System.Repositories
 
             return true;
         }
+
+        public async Task<List<Product>> GetTopTenProductsByQty()
+        {
+            var top10Products = await _context.Products
+                .OrderByDescending(p => p.Quantity)
+                .Take(10)
+                .ToListAsync();
+            return top10Products;
+        }
+
+
     }
 }

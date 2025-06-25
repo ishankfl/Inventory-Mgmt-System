@@ -30,7 +30,7 @@ namespace Inventory_Mgmt_System.Repositories
             using (var dbConnection = dapperDbContext.CreateConnection())
             {
                 dbConnection.Open();
-                var usersQuery = await dbConnection.QueryAsync<User>("SELECT * FROM USER;");
+                var usersQuery = await dbConnection.QueryAsync<User>("SELECT * FROM \"Users\";");
                 return usersQuery.ToList();
             }
 
