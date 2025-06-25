@@ -43,5 +43,21 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500,new {success="False",message = $"Something went wrong {ex}" });
             }
         }
+
+        [HttpGet("GetCount")]
+        public async Task<IActionResult> GetCount()
+        {
+            try
+            {
+
+                var getCount = await _dashboardService.GetCount();
+                return StatusCode(200, getCount);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(500, new { success = "False", message = "SOmething went wrong" });
+            }
+        }
     }
 }

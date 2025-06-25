@@ -101,5 +101,11 @@ namespace Inventory_Mgmt_System.Repositories
             return user;
         }
 
+        public async Task<int> TotalNumberOfUser()
+        {
+            var count = await dbContext .Users.CountAsync();
+            return count;
+        }
+
     }
 }

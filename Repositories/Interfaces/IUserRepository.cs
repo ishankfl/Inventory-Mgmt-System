@@ -11,5 +11,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<User> GetUserByEmailAsync(string Email);
         Task<User> DeleteUserById(Guid id);
 
+
+        Task<int> TotalNumberOfUser();
+
     }
 }

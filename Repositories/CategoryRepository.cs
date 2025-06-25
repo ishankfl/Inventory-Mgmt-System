@@ -88,5 +88,12 @@ namespace Inventory_Mgmt_System.Repositories
             return category;
         }
 
+        public async Task<int> TotalNumberOfCategory()
+
+        {
+            var count = await _context.Categories.CountAsync();
+            return count;
+
+        }
     }
 }

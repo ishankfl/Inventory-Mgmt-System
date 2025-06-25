@@ -6,5 +6,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
     {
         Task<List<Product>> GetTopTenQtyProducts();
         Task<List<Product>> GetTopIssuedProductsAsync();
+        Task<Dictionary<string,int>> GetCount();
+
     }
 }

@@ -130,6 +130,11 @@ namespace Inventory_Mgmt_System.Repositories
             return top10Products;
         }
 
+        public async Task<int> TotalNumberOfProduct()
+        {
+            var count = await _context.Products.CountAsync();
+            return count;
+        }
 
     }
 }

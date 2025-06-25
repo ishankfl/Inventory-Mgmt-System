@@ -24,6 +24,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
 
         Task<List<Product>> GetTopTenProductsByQty();
 
+        Task<int> TotalNumberOfProduct();
+
 
 
     }

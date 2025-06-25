@@ -12,6 +12,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<List<Category>> GetAllCategories();
         Task<Category> DeleteCategory(Guid id);
         Task<Category> GetCategoryByName(string name);
+
+        Task<int> TotalNumberOfCategory();
         /*  Task<Category> GetCategoryById(Guid id);
           Task<Category> CreateCategory(Category category)*/
 

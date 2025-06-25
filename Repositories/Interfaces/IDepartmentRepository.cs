@@ -11,5 +11,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task DeleteAsync(Guid id);
 
         Task<Department?> GetByNameAsync(string name);
+
+        Task<int> TotalNumberOfDepartments();
     }
 }
