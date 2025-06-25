@@ -7,8 +7,10 @@ namespace Inventory_Mgmt_System.Services
     public class DashboardService : IDashboardService
     {
         private IProductRepository _productRepository;
-        public DashboardService(IProductRepository productRepository) { 
+        private readonly IIssueRepository _issueRepository;
+        public DashboardService(IProductRepository productRepository, IIssueRepository issueRepository) { 
             _productRepository = productRepository;
+            _issueRepository = issueRepository;
         }
         public async Task<List<Product>> GetTopTenQtyProducts()
         {
@@ -16,5 +18,13 @@ namespace Inventory_Mgmt_System.Services
             return top10Proudcts;
         }
 
+        public async Task<List<Product>> GetTopIssuedProductsAsync()
+        {
+            var topIssuedProducts = await _issueRepository.GetTopIssuedProductsAsync();
+            return topIssuedProducts;
+        }
+
+
     }
+
 }
