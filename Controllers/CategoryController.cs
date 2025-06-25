@@ -16,6 +16,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             this._categoryService = categoryService;
         }
+
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddCategory(CategoryCreateDto categorydto)
@@ -42,8 +43,6 @@ namespace Inventory_Mgmt_System.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"Something went wrong {ex.Message}");
-
-                //return BadRequest(ex.Message);
             }
         }
 

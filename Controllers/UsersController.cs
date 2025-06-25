@@ -23,7 +23,7 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         // POST: api/Users
-        [Authorize(Roles = "Admin")]
+       // [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(RegisterUserDTO request)
         {

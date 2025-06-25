@@ -51,6 +51,7 @@ namespace Inventory_Mgmt_System.Controllers
             }
 
         }
+
         [HttpPost]
         public async Task<IActionResult> CreateIssue([FromBody] IssueRequestDto request)
         {
@@ -112,6 +113,7 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
+
         [HttpPatch("{id:guid}/complete")]
         public async Task<IActionResult> CompleteIssue(Guid id)
         {
@@ -130,6 +132,7 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
+
         [HttpGet("deptId/{departmentId}")]
         public async Task<IActionResult> GetIssuesByDepartmentId(string departmentId)
         {
@@ -139,7 +142,7 @@ namespace Inventory_Mgmt_System.Controllers
                 var result = await _issueService.GetIssuesByDepartmentId(departmentId);
                 if (result == null)
                 {
-                    return StatusCode(204, "[]");
+                    return StatusCode(200, "[]");
                 }
                 return Ok(result);
             }
@@ -148,6 +151,7 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, "{'error': 'Something went wrong'}");
             }
         }
+
         [Authorize]
         [HttpDelete("removeItem/{issueId}/Product/{productId}")]
         public async Task<IActionResult> RemoveItemFromIssue(string issueId, string productId)
@@ -162,6 +166,7 @@ namespace Inventory_Mgmt_System.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
         [Authorize]
         [HttpPost("CompleteIssue/{issueId}")]
         public async Task<IActionResult> MakeCompleteIssue(string issueId)
@@ -183,9 +188,6 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { message = "An error occurred while completing the issue." });
             }
         }
-
-
-
 
     }
 }

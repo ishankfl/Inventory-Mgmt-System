@@ -16,5 +16,6 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<ProductIssue> RemoveItemFromIssue(Guid issueId, ProductIssue product);
 
         Task<ProductIssue> MakeCompleteIssue(Guid issueId);
+        Task<List<Product>> GetTopIssuedProductsAsync();
     }
 }

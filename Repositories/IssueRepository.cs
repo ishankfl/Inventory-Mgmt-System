@@ -1,6 +1,7 @@
 ﻿using Inventory_Mgmt_System.Data;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
+using Inventory_Mgmt_System.Services;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
@@ -94,7 +95,7 @@ namespace Inventory_Mgmt_System.Repositories
             return issue;
         }
 
-
+        // Remove item from issue
         public async Task<ProductIssue> RemoveItemFromIssue(Guid issueId, ProductIssue product)
         {
             var issue = await _context.ProductIssues
@@ -119,6 +120,33 @@ namespace Inventory_Mgmt_System.Repositories
             _context.IssueItems.Remove(itemToRemove);
 
             return issue;
+        }
+
+        public async Task<List<Product>> GetTopIssuedProductsAsync()
+        {
+            var result = await _context.IssueItems
+                .GroupBy(pi => pi.Product.Id)
+                .Select(group => new
+                {
+                    ProductId = group.Key,
+                    TotalIssued = group.Sum(pi => pi.QuantityIssued)
+                })
+                .OrderByDescending(x => x.TotalIssued)
+                .Take(10)
+                .Join(_context.Products,
+                      g => g.ProductId,
+                      p => p.Id,
+                      (g, p) => new Product
+                      {
+                          Id = p.Id,
+                          Name = p.Name,
+                          Description = p.Description,
+                          Price = p.Price,
+                          Quantity = g.TotalIssued
+                      })
+                .ToListAsync();
+
+            return result;
         }
 
 

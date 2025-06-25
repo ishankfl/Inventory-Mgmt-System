@@ -52,6 +52,12 @@ namespace Inventory_Mgmt_System.Repositories
             }
         }
 
-      
+        public async Task<int> TotalNumberOfDepartments()
+        {
+            var count = await _context.Departments.CountAsync();
+            return count;
+        }
+
+
     }
 }
