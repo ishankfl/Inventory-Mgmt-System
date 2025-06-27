@@ -59,7 +59,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddAuthorization();
 
-// Dependency Injection
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
@@ -76,8 +76,11 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IIssueRepository, IssueRepository>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 // and use it:
-//Dashboard service registering
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IActivityServices, ActivityService>();
+
 
 
 builder.Services.AddSingleton<DapperDbContext>();
