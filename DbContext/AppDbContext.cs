@@ -23,6 +23,9 @@ namespace Inventory_Mgmt_System.Data
         public DbSet<ProductIssue> ProductIssues { get; set; }
         public DbSet<IssueItem> IssueItems { get; set; }
 
+        public DbSet<Activity> Activity { get; set; }
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // One User can create multiple Categories, one Category belongs to one User
