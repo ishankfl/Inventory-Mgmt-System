@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 
 namespace Inventory_Mgmt_System.Services.Interfaces
 {
@@ -7,9 +8,10 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<List<Activity>> GetAllActivities();
 
 
-        Task<Activity> AddNewActivity(Activity activity);
+      
 
         Task<Activity> DeleteActivity(string activity);
+        Task<Activity> AddNewActivity(ActivityDTO activityDto);
 
 
     }

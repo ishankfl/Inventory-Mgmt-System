@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
 
@@ -18,7 +19,16 @@ namespace Inventory_Mgmt_System.Services
         }
 
 
-        public async  Task<Activity> AddNewActivity(Activity activity) {
+        public async Task<Activity> AddNewActivity(ActivityDTO activityDto){
+            var activity = new Activity
+            {
+                Id = new Guid(),
+                Action = activityDto.Action,
+                Status = activityDto.Status,
+                   Type = activityDto.Type,
+                UserId = activityDto.UserId
+
+            };
 
             var newActivity = await _repository.AddNewActivity(activity);
             return newActivity;
@@ -35,7 +45,6 @@ namespace Inventory_Mgmt_System.Services
             var deleteActivity = await _repository.DeleteActivity(activityById);
             return activityById;
         }
-
 
     }
 }

@@ -10,8 +10,8 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
         [ApiController]
-        [Authorize]
-
+/*        [Authorize]
+*/
     public class ActivityController:ControllerBase
 
 
@@ -51,7 +51,7 @@ namespace Inventory_Mgmt_System.Controllers
 
                 };
 
-                var activityAdded = await _service.AddNewActivity(activity);
+                var activityAdded = await _service.AddNewActivity(activityDto);
                 return StatusCode(201,activityAdded);
             }
             catch (Exception ex)
