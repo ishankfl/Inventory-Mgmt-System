@@ -23,17 +23,7 @@ namespace Inventory_Mgmt_System.Services
        public async  Task<User> AddUserService(User user)
         {
             var userNew = await _userRepository.AddUserRepo(user);
-            if (userNew != null) {
-                var activityDto = new ActivityDTO
-                {
-                    Action = $"New User added with name {user.FullName}",
-                    Status = "success",
-                    Type = ActivityType.UserAdded,
-                    UserId=user.Id
-                };
-
-                var newactivity = await _activityServices.AddNewActivity(activityDto);
-            }
+          
             return userNew;
         }
 

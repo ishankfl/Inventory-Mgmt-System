@@ -77,6 +77,13 @@ namespace Inventory_Mgmt_System.Data
                 .HasForeignKey(ii => ii.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Activity>()
+    .HasOne(a => a.User)
+    .WithMany() // or .WithMany(u => u.Activities) if you have navigation
+    .HasForeignKey(a => a.UserId)
+    .OnDelete(DeleteBehavior.Cascade); // 👈 key line
+
+
             base.OnModelCreating(modelBuilder);
         }
 

@@ -36,6 +36,7 @@ namespace Inventory_Mgmt_System.Models
         UserLoggedIn,
         UserLoggedOut,
         UserAdded,
+        UserDeleted,
         LowStockAlert,
         DocumentUploaded,
         InventoryChecked
