@@ -21,7 +21,7 @@ namespace Inventory_Mgmt_System.Repositories
         {
             return await _dbContext.Activity
                 .Include(a => a.User)  
-                .OrderByDescending(a => a.Timestamp)
+                .OrderBy(a => a.Timestamp)
                 .ToListAsync();
         }
 

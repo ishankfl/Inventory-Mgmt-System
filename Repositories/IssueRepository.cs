@@ -149,6 +149,30 @@ namespace Inventory_Mgmt_System.Repositories
             return result;
         }
 
+        public async Task<Product> UpdateOneProductQty(Guid issuedId, Guid productId, int newQty)
+        {
+            var issue = await _context.ProductIssues
+                .Include(pi => pi.IssueItems)
+                    .ThenInclude(ii => ii.Product) // make sure Product is eagerly loaded
+                .FirstOrDefaultAsync(pi => pi.Id == issuedId);
+
+            if (issue == null)
+                throw new Exception("ProductIssue not found");
+
+            var issueItem = issue.IssueItems
+                .FirstOrDefault(item => item.Product.Id == productId);
+
+            if (issueItem == null)
+                throw new Exception("Product not found in issue");
+
+            issueItem.QuantityIssued = newQty;
+
+            await _context.SaveChangesAsync();
+
+            return issueItem.Product; // returning the updated product
+        }
+
+
 
     }
 }

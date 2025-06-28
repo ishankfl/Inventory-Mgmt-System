@@ -99,7 +99,7 @@ namespace Inventory_Mgmt_System.Controllers
             var activityDto = new ActivityDTO
             {
                 Action = $"User {user.Email} logged in successfully",
-                Status = "success",
+                Status = "warning",
                 Type = ActivityType.UserLoggedIn,
                 UserId = user.Id
             };
@@ -147,7 +147,7 @@ namespace Inventory_Mgmt_System.Controllers
             var activityDto = new ActivityDTO
             {
                 Action = $"User with Email {user.Email} was deleted",
-                Status = "success",
+                Status = "danger",
                 Type = ActivityType.UserDeleted,
                 UserId = currentUserId
             };
