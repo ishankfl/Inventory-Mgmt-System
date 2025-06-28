@@ -17,7 +17,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<ProductIssue?> GetIssuesByDepartmentId(string departmentId);
         Task<ProductIssue> RemoveItemFromIssue(string issueId, string productId);
         Task<ProductIssue> MakeCompleteIssue(Guid issueId);
-
+        Task<Product> UpdateOneProductQty(Guid issuedId, Guid productId, int newQty);
 
     }
 }

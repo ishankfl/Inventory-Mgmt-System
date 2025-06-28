@@ -189,5 +189,21 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("{IssueId}/{ProductId}/{newQuantity}")]
+        public async Task<IActionResult> UpdateProduct(string issueId, string productId, string newQuantity)
+        {
+            try
+            {
+                var product = await _issueService.UpdateOneProductQty(Guid.Parse(issueId), Guid.Parse(productId),
+                   int.Parse(newQuantity));
+                return StatusCode(200, product);
+            }
+            catch(Exception e)
+            {
+                return StatusCode(500, new { success = false, message = $"Some thing wend wrong {e}" });
+            }
+
+        }
     }
 }

@@ -203,5 +203,39 @@ namespace Inventory_Mgmt_System.Services
         }
 
 
+        public async Task<Product> UpdateOneProductQty(Guid issuedId, Guid productId, int newQty)
+        {
+            var issue = await _context.ProductIssues
+                .Include(pi => pi.IssueItems)
+                    .ThenInclude(ii => ii.Product)
+                .FirstOrDefaultAsync(pi => pi.Id == issuedId);
+
+            if (issue == null)
+                throw new Exception("ProductIssue not found");
+
+            var issueItem = issue.IssueItems
+                .FirstOrDefault(item => item.Product.Id == productId);
+
+            if (issueItem == null)
+                throw new Exception("Product not found in issue");
+
+            int oldQty = issueItem.QuantityIssued;
+
+            // Update issued quantity
+            issueItem.QuantityIssued = newQty;
+
+            // Adjust product stock based on difference
+            var product = issueItem.Product;
+            int diff = oldQty - newQty;
+
+            product.Quantity += diff;
+
+            // Save changes to both issue and product
+            await _context.SaveChangesAsync();
+
+            return product;
+        }
+
+
     }
 }

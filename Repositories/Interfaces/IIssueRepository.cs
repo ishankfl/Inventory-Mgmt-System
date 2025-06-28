@@ -17,5 +17,6 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
 
         Task<ProductIssue> MakeCompleteIssue(Guid issueId);
         Task<List<Product>> GetTopIssuedProductsAsync();
+        Task<Product> UpdateOneProductQty(Guid issuedId, Guid productId, int newQty);
     }
 }
