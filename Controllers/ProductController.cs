@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
+using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.JSInterop.Infrastructure;
@@ -13,10 +14,14 @@ namespace Inventory_Mgmt_System.Controllers
     public class ProductController : ControllerBase  // Use ControllerBase for APIs
     {
         private readonly IProductService _productService;
+        private readonly IActivityServices _activityServices;
+        private readonly IUserService _userService;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, IActivityServices activityServices, IUserService userService)
         {
+            this._activityServices = activityServices;
             _productService = productService;
+            _userService = userService;
         }
 
         // GET: api/Product
@@ -77,6 +82,24 @@ namespace Inventory_Mgmt_System.Controllers
                 };
              
                 var createdProduct = await _productService.CreateProductAsync(product);
+
+                var userIdClaim = User?.FindFirst("id")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized("Invalid token or user ID claim not found");
+                }
+
+                var currentUserId = Guid.Parse(userIdClaim);
+             var getUserById = await _userService.GetUserById(Guid.Parse(currentUserId.ToString()));
+                var activityDto = new ActivityDTO
+                {
+                    Action = $"User with Email {getUserById.Email} added new product : {product.Name}",
+                    Status = "success",
+                    Type = ActivityType.ProductAdded,
+                    UserId = getUserById.Id
+                };
+
+                await _activityServices.AddNewActivity(activityDto);
                 return Ok( createdProduct);
             }
             catch (Exception ex)
@@ -106,6 +129,24 @@ namespace Inventory_Mgmt_System.Controllers
             var updatedProduct = await _productService.UpdateProductAsync(product);
             if (updatedProduct == null)
                 return NotFound();
+            var userIdClaim = User?.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized("Invalid token or user ID claim not found");
+            }
+
+            var currentUserId = Guid.Parse(userIdClaim);
+            var getUserById = await _userService.GetUserById(Guid.Parse(currentUserId.ToString()));
+
+            var activityDto = new ActivityDTO
+            {
+                Action = $"User with Email {getUserById.Email} updated the product: {updatedProduct.Name}",
+                Status = "warning",
+                Type = ActivityType.ProductUpdated,
+                UserId = updatedProduct.UserId
+            };
+
+            await _activityServices.AddNewActivity(activityDto);
 
             return Ok(updatedProduct);
         }
@@ -121,6 +162,23 @@ namespace Inventory_Mgmt_System.Controllers
                 return NotFound();
 
             await _productService.DeleteProductAsync(id);
+            var userIdClaim = User?.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized("Invalid token or user ID claim not found");
+            }
+
+            var currentUserId = Guid.Parse(userIdClaim);
+
+            var activityDto = new ActivityDTO
+            {
+                Action = $"User with Email {product.User.Email} deleted the product: {product.Name}",
+                Status = "danger",
+                Type = ActivityType.ProductDeleted,
+                UserId = product.UserId
+            };
+
+            await _activityServices.AddNewActivity(activityDto);
             return NoContent();
         }
     }

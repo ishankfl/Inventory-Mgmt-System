@@ -13,6 +13,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
 
 
         Task<int> TotalNumberOfUser();
+        Task<User> GetUserById(Guid id);
+
 
     }
 }

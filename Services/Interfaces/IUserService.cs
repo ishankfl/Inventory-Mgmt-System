@@ -10,5 +10,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
 
         Task<User> GetUserByEmailAsync(string Email);
         Task<User> DeleteUserById(Guid id);
+        Task<User> GetUserById(Guid id);
+
     }
 }

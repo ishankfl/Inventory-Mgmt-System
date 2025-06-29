@@ -51,6 +51,12 @@ namespace Inventory_Mgmt_System.Services
             return user;
         }
 
+        public async Task<User> GetUserById(Guid id)
+        {
+            var user = await _userRepository.GetUserById(id);
+            return user;
+        }
+
 
 
     }

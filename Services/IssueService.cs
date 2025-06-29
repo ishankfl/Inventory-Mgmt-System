@@ -66,9 +66,7 @@ namespace Inventory_Mgmt_System.Services
                 // Get or create the active issue for this department
                 var activeIssue = await GetOrCreateActiveIssue(departmentId, issuedById);
 
-                // Process each item
-               /* foreach (var item in items)
-                {*/
+             
                     await ProcessIssueItem(activeIssue, item);
                 
 
@@ -221,16 +219,13 @@ namespace Inventory_Mgmt_System.Services
 
             int oldQty = issueItem.QuantityIssued;
 
-            // Update issued quantity
             issueItem.QuantityIssued = newQty;
 
-            // Adjust product stock based on difference
             var product = issueItem.Product;
             int diff = oldQty - newQty;
 
             product.Quantity += diff;
 
-            // Save changes to both issue and product
             await _context.SaveChangesAsync();
 
             return product;

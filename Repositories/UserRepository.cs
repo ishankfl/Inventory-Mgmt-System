@@ -107,5 +107,12 @@ namespace Inventory_Mgmt_System.Repositories
             return count;
         }
 
+        public async Task<User> GetUserById(Guid id)
+        {
+            var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Id==id);
+            return user;
+        }
+
+
     }
 }
