@@ -116,13 +116,31 @@ namespace Inventory_Mgmt_System.Repositories
 
         public async Task<List<Product>> GetProductsByCategory(Guid categoryId)
         {
-            var products = await _context.Products
-                .Where(p => p.CategoryId == categoryId)
-                .Include(p => p.Category)
-                .Include(p => p.User)
-                .ToListAsync();
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                string query = @"
+                    SELECT 
+                        p.*, c.*, u.*
+                    FROM ""Products"" p
+                    JOIN ""Categories"" c ON p.""CategoryId"" = c.""Id""
+                    JOIN ""Users"" u ON p.""UserId"" = u.""Id""
+                    WHERE p.""CategoryId"" = @CategoryId
+                    ORDER BY p.""CreatedAt"" DESC";
 
-            return products ?? new List<Product>();
+                var products = (await dbConnection.QueryAsync<Product, Category, User, Product>(
+                    query,
+                    (product, category, user) =>
+                    {
+                        product.Category = category;
+                        product.User = user;
+                        return product;
+                    },
+                    new { CategoryId = categoryId },
+                    splitOn: "Id,Id,Id"
+                )).AsList();
+
+                return products;
+            }
         }
 
         public async Task<List<Product>> GetProductsByUser(Guid userId)
