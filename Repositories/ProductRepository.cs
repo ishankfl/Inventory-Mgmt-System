@@ -27,20 +27,39 @@ namespace Inventory_Mgmt_System.Repositories
             await _context.SaveChangesAsync();
             return added.Entity;
         }
-
         public async Task<Product> GetProductById(Guid id)
         {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
+            using (var dbConnection = _dapperDbContext.CreateConnection())
             {
-                throw new KeyNotFoundException($"Product with ID {id} not found.");
-            }
+                string query = @"
+                    SELECT 
+                        p.*, 
+                        c.*, 
+                        u.*
+                    FROM ""Products"" p
+                    JOIN ""Categories"" c ON p.""CategoryId"" = c.""Id""
+                    JOIN ""Users"" u ON p.""UserId"" = u.""Id""
+                    WHERE p.""Id"" = @Id";
 
-            return product;
+                var product = (await dbConnection.QueryAsync<Product, Category, User, Product>(
+                    query,
+                    (p, category, user) =>
+                    {
+                        p.Category = category;
+                        p.User = user;
+                        return p;
+                    },
+                    new { Id = id },
+                    splitOn: "Id,Id,Id" 
+                )).FirstOrDefault();
+
+                if (product == null)
+                {
+                    throw new KeyNotFoundException($"Product with ID {id} not found.");
+                }
+
+                return product;
+            }
         }
 
         public async Task<Product> GetProductByName(string name)
