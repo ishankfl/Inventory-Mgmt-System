@@ -28,8 +28,15 @@ namespace Inventory_Mgmt_System.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProduct()
         {
-            var products = await _productService.GetAllProductsAsync();
-            return Ok(products);
+            try
+            {
+                var products = await _productService.GetAllProductsAsync();
+                return Ok(products);
+            }
+            catch (Exception ex) { 
+                return StatusCode(500, ex.Message);
+            }
+          
         }
 
         // GET: api/Product/{id}

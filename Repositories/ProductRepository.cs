@@ -6,16 +6,19 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Inventory_Mgmt_System.Repositories.Interfaces;
+using Dapper;
 
 namespace Inventory_Mgmt_System.Repositories
 {
     public class ProductRepository : IProductRepository
     {
         private readonly AppDbContext _context;
+        private readonly DapperDbContext _dapperDbContext;
 
-        public ProductRepository(AppDbContext context)
+        public ProductRepository(AppDbContext context, DapperDbContext dapperDbContext)
         {
             _context = context;
+            _dapperDbContext = dapperDbContext;
         }
 
         public async Task<Product> CreateProduct(Product product)
@@ -50,17 +53,34 @@ namespace Inventory_Mgmt_System.Repositories
 
             return product;
         }
-
         public async Task<List<Product>> GetAllProducts()
         {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.User)
-                .OrderByDescending(p => p.CreatedAt)
-                .ToListAsync();
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                string query = @"
+        SELECT 
+            p.*, c.*, u.*
+        FROM ""Products"" p
+        JOIN ""Categories"" c ON p.""CategoryId"" = c.""Id""
+        JOIN ""Users"" u ON p.""UserId"" = u.""Id""
+        ORDER BY p.""CreatedAt"" DESC";
 
-            return products ?? new List<Product>();
+             
+                var products = (await dbConnection.QueryAsync<Product, Category, User, Product>(
+                    query,
+                    (product, category, user) =>
+                    {
+                        product.Category = category;
+                        product.User = user;
+                        return product;
+                    },
+                    splitOn: "Id" 
+                )).ToList();
+
+                return products;
+            }
         }
+
 
 
         public async Task<List<Product>> GetProductsByCategory(Guid categoryId)
@@ -98,7 +118,7 @@ namespace Inventory_Mgmt_System.Repositories
             existingProduct.CategoryId = updatedProduct.CategoryId;
             existingProduct.UserId = updatedProduct.UserId;
             existingProduct.Price = updatedProduct.Price;
-            existingProduct.Quantity= updatedProduct.Quantity;
+            existingProduct.Quantity = updatedProduct.Quantity;
             existingProduct.Description = updatedProduct.Description; ;
 
 
