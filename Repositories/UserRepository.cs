@@ -11,11 +11,9 @@ namespace Inventory_Mgmt_System.Repositories
 {
     public class UserRepository:IUserRepository
     {
-        private AppDbContext dbContext;
         private  DapperDbContext dapperDbContext;
-        public UserRepository(AppDbContext _dbcontext, DapperDbContext dapperContext)
+        public UserRepository( DapperDbContext dapperContext)
         {
-            this.dbContext = _dbcontext;
             this.dapperDbContext = dapperContext; 
         }
 
