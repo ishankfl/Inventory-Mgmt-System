@@ -45,14 +45,26 @@ namespace Inventory_Mgmt_System.Repositories
 
         public async Task<Product> GetProductByName(string name)
         {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.Name == name);
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                string query = @"
+        SELECT 
+            ""Id"", ""Name"", ""Description"", ""Quantity"", ""Price"",
+            ""CategoryId"", ""UserId"", ""CreatedAt""
+        FROM ""Products""
+        WHERE ""Name"" = @Name
+        LIMIT 1;";
+
+                var product = await dbConnection.QueryFirstOrDefaultAsync<Product>(
+                    query,
+                    new { Name = name }
+                );
 
 
-            return product;
+                return product;
+            }
         }
+
         public async Task<List<Product>> GetAllProducts()
         {
             using (var dbConnection = _dapperDbContext.CreateConnection())
