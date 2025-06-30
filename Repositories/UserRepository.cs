@@ -8,6 +8,7 @@ using Microsoft.Data.SqlClient;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 
 namespace Inventory_Mgmt_System.Repositories
@@ -78,40 +79,83 @@ namespace Inventory_Mgmt_System.Repositories
 
         public async Task<User> CheckEmailAndPassword(string email, string password)
         {
-            var user =await  dbContext.Users.FirstOrDefaultAsync(data => data.Email==email && data.PasswordHash==password);
+           // var user =await  dbContext.Users.FirstOrDefaultAsync(data => data.Email==email && data.PasswordHash==password);
+           using (var dbConnection = dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+
+                string query = @"SELECT * FROM ""Users"" WHERE Email = @Email and PasswordHash = @PasswordHash";
+                var user = await dbConnection.ExecuteScalarAsync<User>(query, new
+                {
+                    Email = email,
+                    PasswordHash = password
+                });
+                 return user;
+            }
             
-            return user;
         }
 
-       public async Task<User> GetUserByEmailAsync(string Email)
+        public async Task<User> GetUserByEmailAsync(string email)
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(data=>data.Email==Email);
-            return user;
+            using (var dbConnection = dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+                string query = @"SELECT * FROM ""Users"" WHERE ""Email"" = @Email";
+
+                var user = await dbConnection.QueryFirstOrDefaultAsync<User>(query, new { Email = email });
+                return user;
+            }
         }
+
 
         public async Task<User> DeleteUserById(Guid id)
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Id==id);
-            if (user == null)
+            using (var dbConnection = dapperDbContext.CreateConnection())
             {
-                throw new KeyNotFoundException($"Category with ID {id} not found.");
+                dbConnection.Open();
+
+                string selectQuery = @"SELECT * FROM ""Users"" WHERE ""Id"" = @Id";
+                var user = await dbConnection.QueryFirstOrDefaultAsync<User>(selectQuery, new { Id = id });
+
+                if (user == null)
+                {
+                    throw new KeyNotFoundException($"User with ID {id} not found.");
+                }
+
+                string deleteQuery = @"DELETE FROM ""Users"" WHERE ""Id"" = @Id";
+                await dbConnection.ExecuteAsync(deleteQuery, new { Id = id });
+
+                return user;
             }
-            dbContext.Users.Remove(user);
-            await dbContext.SaveChangesAsync();
-            return user;
         }
+
 
         public async Task<int> TotalNumberOfUser()
         {
-            var count = await dbContext .Users.CountAsync();
-            return count;
+            using (var dbConnection = dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+
+                string query = @"SELECT COUNT(*) FROM ""Users""";
+                var count = await dbConnection.ExecuteScalarAsync<int>(query);
+
+                return count;
+            }
         }
 
         public async Task<User> GetUserById(Guid id)
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Id==id);
-            return user;
+            using (var dbConnection = dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+
+                string query = @"SELECT * FROM ""Users"" WHERE ""Id"" = @Id";
+                var user = await dbConnection.QueryFirstOrDefaultAsync<User>(query, new { Id = id });
+
+                return user;
+            }
         }
+
 
 
     }

@@ -56,10 +56,12 @@ namespace Inventory_Mgmt_System.Repositories
             var products = await _context.Products
                 .Include(p => p.Category)
                 .Include(p => p.User)
+                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
             return products ?? new List<Product>();
         }
+
 
         public async Task<List<Product>> GetProductsByCategory(Guid categoryId)
         {

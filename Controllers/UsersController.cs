@@ -82,35 +82,42 @@ namespace Inventory_Mgmt_System.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult> Login(LoginDto request)
         {
-            var user = await _userService.GetUserByEmailAsync(request.Email);
-            if (user == null)
+            try
             {
-                return Unauthorized("Invalid email or password.");
-            }
+                var user = await _userService.GetUserByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return Unauthorized("Invalid email or password.");
+                }
 
-            bool isPasswordValid = PasswordHasher.VerifyPasswordHash(request.password, user.PasswordHash, user.PasswordSalt);
-            if (!isPasswordValid)
-            {
-                return Unauthorized("Invalid email or password.");
-            }
+                bool isPasswordValid = PasswordHasher.VerifyPasswordHash(request.password, user.PasswordHash, user.PasswordSalt);
+                if (!isPasswordValid)
+                {
+                    return Unauthorized("Invalid email or password.");
+                }
 
-            string token = JwtUtils.GenerateJwtToken(user);
+                string token = JwtUtils.GenerateJwtToken(user);
 
-            var activityDto = new ActivityDTO
-            {
-                Action = $"User {user.Email} logged in successfully",
-                Status = "warning",
-                Type = ActivityType.UserLoggedIn,
-                UserId = user.Id
-            };
+                var activityDto = new ActivityDTO
+                {
+                    Action = $"User {user.Email} logged in successfully",
+                    Status = "warning",
+                    Type = ActivityType.UserLoggedIn,
+                    UserId = user.Id
+                };
 
-            await _activityServices.AddNewActivity(activityDto);
+                await _activityServices.AddNewActivity(activityDto);
 
-            // 5. Return token
-            return Ok(new Dictionary<string, string?>
+                // 5. Return token
+                return Ok(new Dictionary<string, string?>
             {
                 { "token", token }
             });
+            }
+            catch (Exception ex) { 
+                return StatusCode(500, ex.Message);
+               }
+           
         }
 
         [HttpGet("{id}")]

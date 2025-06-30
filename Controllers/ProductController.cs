@@ -52,7 +52,6 @@ namespace Inventory_Mgmt_System.Controllers
 
         }
 
-        // POST: api/Product
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddProductDto productDto)
         {
@@ -68,7 +67,6 @@ namespace Inventory_Mgmt_System.Controllers
 
                 }
 
-                // Manually map DTO to Product
                 var product = new Product
                 {
                     Id = Guid.NewGuid(),
@@ -152,7 +150,6 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
 
-        // DELETE: api/Product/{id}
         [HttpDelete("{idInString}")]
         public async Task<IActionResult> Delete(string idInString)
         {
