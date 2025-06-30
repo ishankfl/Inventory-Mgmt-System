@@ -2,13 +2,9 @@
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.Data.SqlClient;
+
 using Dapper;
-using Microsoft.Extensions.Configuration;
-using Npgsql;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
+
 
 
 namespace Inventory_Mgmt_System.Repositories
