@@ -173,27 +173,53 @@ namespace Inventory_Mgmt_System.Repositories
         }
 
 
+        /*    public async Task<Product> UpdateProduct(Product updatedProduct)
+            {
+                var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == updatedProduct.Id);
+
+                if (existingProduct == null)
+                {
+                    throw new KeyNotFoundException($"Product with ID {updatedProduct.Id} not found.");
+                }
+
+                existingProduct.Name = updatedProduct.Name;
+                existingProduct.CategoryId = updatedProduct.CategoryId;
+                existingProduct.UserId = updatedProduct.UserId;
+                existingProduct.Price = updatedProduct.Price;
+                existingProduct.Quantity = updatedProduct.Quantity;
+                existingProduct.Description = updatedProduct.Description; ;
+
+
+
+                await _context.SaveChangesAsync();
+
+                return existingProduct;
+            }*/
         public async Task<Product> UpdateProduct(Product updatedProduct)
         {
-            var existingProduct = await _context.Products.FirstOrDefaultAsync(p => p.Id == updatedProduct.Id);
-
-            if (existingProduct == null)
+            using (var dbConnection = _dapperDbContext.CreateConnection())
             {
-                throw new KeyNotFoundException($"Product with ID {updatedProduct.Id} not found.");
+                string query = @"
+                    UPDATE ""Products""
+                    SET 
+                        ""Name"" = @Name,
+                        ""CategoryId"" = @CategoryId,
+                        ""UserId"" = @UserId,
+                        ""Price"" = @Price,
+                        ""Quantity"" = @Quantity,
+                        ""Description"" = @Description
+                    WHERE ""Id"" = @Id
+                    RETURNING *;";
+
+                var returnedProduct = await dbConnection.QuerySingleOrDefaultAsync<Product>(query, updatedProduct);
+
+                if (returnedProduct == null)
+                {
+                    throw new KeyNotFoundException($"Product with ID {updatedProduct.Id} not found for update.");
+                }
+
+                return returnedProduct;
             }
-
-            existingProduct.Name = updatedProduct.Name;
-            existingProduct.CategoryId = updatedProduct.CategoryId;
-            existingProduct.UserId = updatedProduct.UserId;
-            existingProduct.Price = updatedProduct.Price;
-            existingProduct.Quantity = updatedProduct.Quantity;
-            existingProduct.Description = updatedProduct.Description; ;
-
-
-
-            await _context.SaveChangesAsync();
-
-            return existingProduct;
         }
 
         public async Task<bool> DeleteProduct(Guid id)
