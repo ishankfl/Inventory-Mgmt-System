@@ -16,7 +16,7 @@ namespace Inventory_Mgmt_System.Data
 
         public DbSet<Category> Categories { get; set; }
 
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Product> Products { get; set; }  
 
         public DbSet<Department> Departments { get; set; }
 
@@ -24,6 +24,12 @@ namespace Inventory_Mgmt_System.Data
         public DbSet<IssueItem> IssueItems { get; set; }
 
         public DbSet<Activity> Activity { get; set; }
+
+        public DbSet<Vendor> Vendor { get; set; }
+
+        public DbSet<Item> Items { get; set; }
+
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -20,7 +20,7 @@ namespace Inventory_Mgmt_System.Repositories
             using (var dbConnection = _dapperDbContext.CreateConnection())
             {
                 dbConnection.Open();
-                var query = @"SELECT * FROM ""Vendors"";";
+                var query = @"SELECT * FROM ""vendors"";";
                 var vendors = await dbConnection.QueryAsync<Vendor>(query);
                 return vendors.ToList();
             }
@@ -33,7 +33,7 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
 
                 string query = @"
-                    INSERT INTO ""Vendors"" (""Id"", ""Name"", ""Email"")
+                    INSERT INTO ""vendors"" (""Id"", ""Name"", ""Email"")
                     VALUES (@Id, @Name, @Email)
                     RETURNING ""Id"";";
 
@@ -54,7 +54,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                string selectQuery = @"SELECT * FROM ""Vendors"" WHERE ""Id"" = @Id;";
+                string selectQuery = @"SELECT * FROM ""vendors"" WHERE ""Id"" = @Id;";
                 var existingVendor = await dbConnection.QueryFirstOrDefaultAsync<Vendor>(selectQuery, new { vendor.Id });
 
                 if (existingVendor == null)
@@ -62,7 +62,7 @@ namespace Inventory_Mgmt_System.Repositories
                     throw new KeyNotFoundException($"Vendor with ID {vendor.Id} not found.");
                 }
 
-                string deleteQuery = @"DELETE FROM ""Vendors"" WHERE ""Id"" = @Id;";
+                string deleteQuery = @"DELETE FROM ""vendors"" WHERE ""Id"" = @Id;";
                 await dbConnection.ExecuteAsync(deleteQuery, new { vendor.Id });
 
                 return existingVendor;
@@ -75,7 +75,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                string query = @"SELECT * FROM ""Vendors"" WHERE ""Id"" = @Id;";
+                string query = @"SELECT * FROM ""vendors"" WHERE ""Id"" = @Id;";
                 var vendor = await dbConnection.QueryFirstOrDefaultAsync<Vendor>(query, new { Id = vendorId });
                 return vendor;
             }
