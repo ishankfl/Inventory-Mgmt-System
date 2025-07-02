@@ -20,7 +20,7 @@ namespace Inventory_Mgmt_System.Repositories
             using (var dbConnection = _dapperDbContext.CreateConnection())
             {
                 dbConnection.Open();
-                var query = @"SELECT * FROM ""vendors"";";
+                var query = @"SELECT * FROM ""Vendor"";";
                 var vendors = await dbConnection.QueryAsync<Vendor>(query);
                 return vendors.ToList();
             }
@@ -75,7 +75,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                string query = @"SELECT * FROM ""vendors"" WHERE ""Id"" = @Id;";
+                string query = @"SELECT * FROM ""vendors"" WHERE ""id"" = @Id;";
                 var vendor = await dbConnection.QueryFirstOrDefaultAsync<Vendor>(query, new { Id = vendorId });
                 return vendor;
             }

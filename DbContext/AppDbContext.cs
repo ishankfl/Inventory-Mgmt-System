@@ -29,6 +29,17 @@ namespace Inventory_Mgmt_System.Data
 
         public DbSet<Item> Items { get; set; }
 
+        public DbSet<Receipt> Receipts { get; set; }
+
+
+        public DbSet<ReceiptDetail> ReceiptDetails { get; set; }
+
+        public DbSet<Stock> Stocks { get; set; }
+
+
+
+
+
 
 
 

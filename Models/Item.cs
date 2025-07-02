@@ -17,3 +17,4 @@ namespace Inventory_Mgmt_System.Models
         public string Unit { get; set; } 
     }
 }
+
