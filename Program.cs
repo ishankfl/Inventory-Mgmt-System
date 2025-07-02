@@ -92,6 +92,10 @@ builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
 
+builder.Services.AddScoped<IStockRepository, StockRepository>();
+builder.Services.AddScoped<IStockService, StockService>();
+
+
 builder.Services.AddSingleton<DapperDbContext>();
 
 

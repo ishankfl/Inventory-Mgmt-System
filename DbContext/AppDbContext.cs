@@ -100,6 +100,8 @@ namespace Inventory_Mgmt_System.Data
     .HasForeignKey(a => a.UserId)
     .OnDelete(DeleteBehavior.Cascade); // 👈 key line
 
+           
+
 
             base.OnModelCreating(modelBuilder);
         }

@@ -10,6 +10,8 @@ namespace Inventory_Mgmt_System.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
+        public string ReceiptId { get; set; }
+
         [Required]
         public DateTime ReceiptDate { get; set; }
 

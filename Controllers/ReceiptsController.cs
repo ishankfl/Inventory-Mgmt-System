@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;

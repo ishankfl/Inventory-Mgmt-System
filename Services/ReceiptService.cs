@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
 
@@ -9,15 +10,17 @@ namespace Inventory_Mgmt_System.Services
         private readonly IReceiptRepository _receiptRepository;
         private readonly IVendorRepository _vendorRepository;
         private readonly IItemRepository _itemRepository;
+        private readonly IStockService _stockService;
 
         public ReceiptService(
             IReceiptRepository receiptRepository,
             IVendorRepository vendorRepository,
-            IItemRepository itemRepository)
+            IItemRepository itemRepository, IStockService stockService)
         {
             _receiptRepository = receiptRepository;
             _vendorRepository = vendorRepository;
             _itemRepository = itemRepository;
+            _stockService = stockService;
         }
 
         public async Task<Receipt> CreateReceiptAsync(ReceiptCreateDto receiptDto)
@@ -52,6 +55,23 @@ namespace Inventory_Mgmt_System.Services
                         Quantity = detailDto.Quantity,
                         Rate = detailDto.Rate
                     });
+                   var stock = await  _stockService.GetStockByItemIdAsync(detailDto.ItemId);
+                    if (stock == null)
+                    {
+                        await _stockService.AddStockAsync(
+                              new Stock
+                              {
+                                  CurrentQuantity = detailDto.Quantity,
+                                  ItemId = detailDto.ItemId,
+                              }
+                              );
+                    }
+                    else{
+                        stock.CurrentQuantity += detailDto.Quantity;
+                        await _stockService.UpdateStockAsync(stock);
+                    }
+           
+
                 }
             }
             catch (Exception ex) { 
@@ -79,18 +99,5 @@ namespace Inventory_Mgmt_System.Services
         }
     }
 
-    public class ReceiptCreateDto
-    {
-        public DateTime ReceiptDate { get; set; }
-        public string BillNo { get; set; }
-        public Guid VendorId { get; set; }
-        public List<ReceiptDetailDto> ReceiptDetails { get; set; }
-    }
-
-    public class ReceiptDetailDto
-    {
-        public Guid ItemId { get; set; }
-        public decimal Quantity { get; set; }
-        public decimal Rate { get; set; }
-    }
+  
 }

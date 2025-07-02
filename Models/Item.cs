@@ -14,7 +14,10 @@ namespace Inventory_Mgmt_System.Models
 
         [Required]
         [MaxLength(50)]
-        public string Unit { get; set; } 
+        public string Unit { get; set; }
+
+        public ICollection<Stock> Stock { get; set; }
+
     }
 }
 

@@ -33,10 +33,12 @@ namespace Inventory_Mgmt_System.Repositories
         public async Task<IEnumerable<Receipt>> GetAllReceiptsAsync()
         {
             return await _context.Receipts
-                .Include(r => r.Vendor)
-                .Include(r => r.ReceiptDetails)
-                .ThenInclude(rd => rd.Item)
-                .ToListAsync();
+    .Include(r => r.Vendor)
+    .Include(r => r.ReceiptDetails)
+        .ThenInclude(rd => rd.Item)
+            .ThenInclude(i => i.Stock) 
+    .ToListAsync();
+
         }
 
         public async Task<bool> DeleteReceiptAsync(Guid id)

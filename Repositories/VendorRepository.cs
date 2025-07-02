@@ -75,7 +75,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                string query = @"SELECT * FROM ""vendors"" WHERE ""id"" = @Id;";
+                string query = @"SELECT * FROM ""Vendor"" WHERE ""Id"" = @Id;";
                 var vendor = await dbConnection.QueryFirstOrDefaultAsync<Vendor>(query, new { Id = vendorId });
                 return vendor;
             }
