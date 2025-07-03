@@ -34,7 +34,6 @@ namespace Inventory_Mgmt_System.Data
 
         public DbSet<ReceiptDetail> ReceiptDetails { get; set; }
 
-        public DbSet<Stock> Stocks { get; set; }
 
 
 
