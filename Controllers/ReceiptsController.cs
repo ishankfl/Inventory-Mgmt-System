@@ -70,11 +70,12 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateReceipt(Guid id, [FromBody] ReceiptUpdateDto receiptDto)
+        public async Task<IActionResult> UpdateReceipt(string id,  ReceiptUpdateDto receiptDto)
         {
+            Console.WriteLine(receiptDto);
             try
             {
-                var updatedReceipt = await _receiptService.UpdateReceiptAsync(id, receiptDto);
+                var updatedReceipt = await _receiptService.UpdateReceiptAsync(Guid.Parse(id), receiptDto);
                 return Ok(new { success = true, data = updatedReceipt });
             }
             catch (KeyNotFoundException ex)

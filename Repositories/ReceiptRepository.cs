@@ -110,7 +110,7 @@ namespace Inventory_Mgmt_System.Repositories
         {
             using (var connection = _dapperDbContext.CreateConnection())
             {
-                string receiptsQuery = @"SELECT * FROM ""Receipts""";
+                string receiptsQuery = @"SELECT * FROM ""Receipts"" ORDER BY ""ReceiptDate""";
                 var receipts = (await connection.QueryAsync<Receipt>(receiptsQuery)).ToList();
 
                 foreach (var receipt in receipts)
@@ -155,15 +155,16 @@ namespace Inventory_Mgmt_System.Repositories
                 return true;
             }
         }
-
         public async Task<Receipt> UpdateReceiptAsync(Receipt receipt)
         {
             using (var connection = _dapperDbContext.CreateConnection())
             {
                 connection.Open();
-              
+                using (var transaction = connection.BeginTransaction())
+                {
                     try
                     {
+                        // 1. Update main Receipt table
                         string updateReceiptQuery = @"
                     UPDATE ""Receipts"" 
                     SET 
@@ -178,36 +179,56 @@ namespace Inventory_Mgmt_System.Repositories
                             receipt.ReceiptDate,
                             receipt.BillNo,
                             receipt.VendorId
-                        });
+                        }, transaction);
 
+                        // 2. Get existing ReceiptDetails from DB
                         string existingDetailsQuery = @"SELECT * FROM ""ReceiptDetails"" WHERE ""ReceiptId"" = @ReceiptId";
                         var existingDetails = (await connection.QueryAsync<ReceiptDetail>(
-                            existingDetailsQuery, new { ReceiptId = receipt.Id })).ToList();
+                            existingDetailsQuery, new { ReceiptId = receipt.Id }, transaction)).ToList();
 
-                        if (receipt.ReceiptDetails != null && receipt.ReceiptDetails.Any())
+                        var incomingDetails = receipt.ReceiptDetails ?? new List<ReceiptDetail>();
+
+                        var detailsToUpdate = incomingDetails
+                            .Where(rd => rd.Id != Guid.Empty && rd.Id != default(Guid)).ToList();
+
+                        var detailsToInsert = incomingDetails
+                            .Where(rd => rd.Id == Guid.Empty || rd.Id == default(Guid)).ToList();
+
+                        var detailsToDelete = existingDetails
+                            .Where(existing => !incomingDetails.Any(rd => rd.Id == existing.Id)).ToList();
+
+                        const string updateStockQuery = @"
+                    UPDATE ""Stocks"" 
+                    SET ""CurrentQuantity"" = ""CurrentQuantity"" + @QuantityDiff
+                    WHERE ""ItemId"" = @ItemId";
+
+                        // 3. Delete removed items and update stock
+                        if (detailsToDelete.Any())
                         {
-                            var detailsToKeep = receipt.ReceiptDetails.Where(rd => rd.Id != Guid.Empty).ToList();
-                            var detailsToAdd = receipt.ReceiptDetails.Where(rd => rd.Id == Guid.Empty).ToList();
+                            string deleteDetailsQuery = @"
+                        DELETE FROM ""ReceiptDetails"" 
+                        WHERE ""Id"" = @Id AND ""ReceiptId"" = @ReceiptId";
 
-                            var detailsToDelete = existingDetails.Where(ed =>
-                                !detailsToKeep.Any(rd => rd.Id == ed.Id)).ToList();
-
-                            if (detailsToDelete.Any())
+                            foreach (var detail in detailsToDelete)
                             {
-                                string deleteDetailsQuery = @"
-                            DELETE FROM ""ReceiptDetails"" 
-                            WHERE ""Id"" = @Id AND ""ReceiptId"" = @ReceiptId";
-
-                                foreach (var detail in detailsToDelete)
+                                await connection.ExecuteAsync(deleteDetailsQuery, new
                                 {
-                                    await connection.ExecuteAsync(deleteDetailsQuery, new
-                                    {
-                                        detail.Id,
-                                        ReceiptId = receipt.Id
-                                    });
-                                }
-                            }
+                                    detail.Id,
+                                    ReceiptId = receipt.Id
+                                }, transaction);
 
+                                // Reduce stock
+                                await connection.ExecuteAsync(updateStockQuery, new
+                                {
+                                    QuantityDiff = -detail.Quantity,
+                                    detail.ItemId
+                                }, transaction);
+                            }
+                        }
+
+                        // 4. Update existing items and adjust stock
+                        if (detailsToUpdate.Any())
+                        {
                             string updateDetailQuery = @"
                         UPDATE ""ReceiptDetails"" 
                         SET 
@@ -216,8 +237,13 @@ namespace Inventory_Mgmt_System.Repositories
                             ""Rate"" = @Rate
                         WHERE ""Id"" = @Id AND ""ReceiptId"" = @ReceiptId";
 
-                            foreach (var detail in detailsToKeep)
+                            foreach (var detail in detailsToUpdate)
                             {
+                                var oldDetail = existingDetails.FirstOrDefault(d => d.Id == detail.Id);
+                                if (oldDetail == null) continue;
+
+                                decimal quantityDifference = detail.Quantity - oldDetail.Quantity;
+
                                 await connection.ExecuteAsync(updateDetailQuery, new
                                 {
                                     detail.Id,
@@ -225,15 +251,26 @@ namespace Inventory_Mgmt_System.Repositories
                                     detail.ItemId,
                                     detail.Quantity,
                                     detail.Rate
-                                });
-                            }
+                                }, transaction);
 
+                                // Adjust stock
+                                await connection.ExecuteAsync(updateStockQuery, new
+                                {
+                                    QuantityDiff = quantityDifference,
+                                    detail.ItemId
+                                }, transaction);
+                            }
+                        }
+
+                        // 5. Insert new items and increase stock
+                        if (detailsToInsert.Any())
+                        {
                             string insertDetailQuery = @"
                         INSERT INTO ""ReceiptDetails"" 
                         (""Id"", ""ReceiptId"", ""ItemId"", ""Quantity"", ""Rate"") 
                         VALUES (@Id, @ReceiptId, @ItemId, @Quantity, @Rate)";
 
-                            foreach (var detail in detailsToAdd)
+                            foreach (var detail in detailsToInsert)
                             {
                                 detail.Id = Guid.NewGuid();
                                 detail.ReceiptId = receipt.Id;
@@ -245,15 +282,16 @@ namespace Inventory_Mgmt_System.Repositories
                                     detail.ItemId,
                                     detail.Quantity,
                                     detail.Rate
-                                });
+                                }, transaction);
+
+                                // Increase stock
+                                await connection.ExecuteAsync(updateStockQuery, new
+                                {
+                                    QuantityDiff = detail.Quantity,
+                                    detail.ItemId
+                                }, transaction);
                             }
                         }
-                        else
-                        {
-                            string deleteAllDetailsQuery = @"DELETE FROM ""ReceiptDetails"" WHERE ""ReceiptId"" = @ReceiptId";
-                            await connection.ExecuteAsync(deleteAllDetailsQuery, new { ReceiptId = receipt.Id });
-                        }
-
 
                         return await GetReceiptByIdAsync(receipt.Id);
                     }
@@ -261,8 +299,11 @@ namespace Inventory_Mgmt_System.Repositories
                     {
                         throw;
                     }
-                
+                }
             }
         }
+
+
     }
+
 }
