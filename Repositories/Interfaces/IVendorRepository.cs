@@ -14,5 +14,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Vendor> DeleteVendor(Vendor vendor);
 
         Task<Vendor> GetVendorById(Guid vendorId);
+
+        Task<bool> Exists(Guid vendorId);
     }
 }

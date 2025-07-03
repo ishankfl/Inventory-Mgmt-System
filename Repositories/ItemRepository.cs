@@ -104,5 +104,13 @@ namespace Inventory_Mgmt_System.Repositories
                 return existingItem;
             }
         }
+        public async Task<bool> Exists(Guid id)
+        {
+            using var dbConnection = _dapperDbContext.CreateConnection();
+
+            const string query = @"SELECT COUNT(1) FROM ""Items"" WHERE ""Id"" = @Id;";
+            return await dbConnection.ExecuteScalarAsync<bool>(query, new { Id = id });
+        }
+
     }
 }

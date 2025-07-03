@@ -55,7 +55,7 @@ namespace Inventory_Mgmt_System.Services
                         Quantity = detailDto.Quantity,
                         Rate = detailDto.Rate
                     });
-                   var stock = await  _stockService.GetStockByItemIdAsync(detailDto.ItemId);
+                    var stock = await _stockService.GetStockByItemIdAsync(detailDto.ItemId);
                     if (stock == null)
                     {
                         await _stockService.AddStockAsync(
@@ -66,19 +66,21 @@ namespace Inventory_Mgmt_System.Services
                               }
                               );
                     }
-                    else{
+                    else
+                    {
                         stock.CurrentQuantity += detailDto.Quantity;
                         await _stockService.UpdateStockAsync(stock);
                     }
-           
+
 
                 }
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 Console.WriteLine(ex.ToString());
             }
 
-        
+
 
             return await _receiptRepository.CreateReceiptAsync(receipt);
         }
@@ -98,41 +100,42 @@ namespace Inventory_Mgmt_System.Services
             return await _receiptRepository.DeleteReceiptAsync(id);
         }
 
-
         public async Task<Receipt> UpdateReceiptAsync(Guid id, ReceiptUpdateDto receiptDto)
         {
             var existingReceipt = await _receiptRepository.GetReceiptByIdAsync(id);
-            if (existingReceipt == null)
+            if (existingReceipt == null) 
                 throw new KeyNotFoundException($"Receipt with ID {id} not found");
 
-            var vendor = await _vendorRepository.GetVendorById(receiptDto.VendorId);
-            if (vendor == null)
+            var vendorExists = await _vendorRepository.Exists(receiptDto.VendorId); // Fixed: Pass VendorId instead of DTO
+            if (!vendorExists)
                 throw new ArgumentException("Vendor not found");
 
             existingReceipt.ReceiptDate = receiptDto.ReceiptDate;
             existingReceipt.BillNo = receiptDto.BillNo;
             existingReceipt.VendorId = receiptDto.VendorId;
 
-            var stockChanges = new Dictionary<Guid, int>();
+            var stockChanges = new Dictionary<Guid, decimal>();
 
             var updatedDetails = new List<ReceiptDetail>();
-            foreach (var detailDto in receiptDto.ReceiptDetails)
+            foreach (var detailDto in receiptDto.ReceiptDetails ) // Ensure case matches
             {
-                var item = await _itemRepository.GetByIdAsync(detailDto.ItemId);
-                if (item == null)
+                var itemExists = await _itemRepository.Exists(detailDto.ItemId);
+                if (!itemExists)
                     throw new ArgumentException($"Item with ID {detailDto.ItemId} not found");
 
-                var existingDetail = existingReceipt.ReceiptDetails.FirstOrDefault(rd => rd.Id == detailDto.Id);
+                var existingDetail = existingReceipt.ReceiptDetails?
+                    .FirstOrDefault(rd => rd.Id == detailDto.Id || (detailDto.Id == null && rd.ItemId == detailDto.ItemId));
 
                 if (existingDetail != null)
                 {
                     var quantityDifference = detailDto.Quantity - existingDetail.Quantity;
+
                     if (quantityDifference != 0)
                     {
                         if (stockChanges.ContainsKey(detailDto.ItemId))
-                            stockChanges[detailDto.ItemId] += int.Parse(quantityDifference.ToString());
+                            stockChanges[detailDto.ItemId] += quantityDifference;
                         else
-                            stockChanges.Add(detailDto.ItemId, int.Parse(quantityDifference.ToString()));
+                            stockChanges.Add(detailDto.ItemId, quantityDifference);
                     }
 
                     existingDetail.ItemId = detailDto.ItemId;
@@ -159,16 +162,16 @@ namespace Inventory_Mgmt_System.Services
                 }
             }
 
-            var removedDetails = existingReceipt.ReceiptDetails
-                .Where(ed => !receiptDto.ReceiptDetails.Any(rd => rd.Id == ed.Id))
-                .ToList();
+            var removedDetails = existingReceipt.ReceiptDetails?
+                .Where(ed => !receiptDto.ReceiptDetails.Any(rd => rd.Id == ed.Id)) // Ensure case matches
+                .ToList() ?? new List<ReceiptDetail>();
 
             foreach (var removedDetail in removedDetails)
             {
                 if (stockChanges.ContainsKey(removedDetail.ItemId))
-                    stockChanges[removedDetail.ItemId] -= int.Parse(removedDetail.Quantity.ToString());
+                    stockChanges[removedDetail.ItemId] -= removedDetail.Quantity;
                 else
-                    stockChanges.Add(removedDetail.ItemId, - int.Parse(removedDetail.Quantity.ToString()));
+                    stockChanges.Add(removedDetail.ItemId, -removedDetail.Quantity);
             }
 
             existingReceipt.ReceiptDetails = updatedDetails;
@@ -198,9 +201,7 @@ namespace Inventory_Mgmt_System.Services
 
             return updatedReceipt;
         }
+
+    } 
+
     }
-
-
-
-  
-}

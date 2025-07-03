@@ -80,5 +80,14 @@ namespace Inventory_Mgmt_System.Repositories
                 return vendor;
             }
         }
+        public async Task<bool> Exists(Guid vendorId)  // Added missing Exists method
+        {
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                var query = @"SELECT COUNT(1) FROM ""Vendor"" WHERE ""Id"" = @Id;";
+                var exists = await dbConnection.ExecuteScalarAsync<bool>(query, new { Id = vendorId });
+                return exists;
+            }
+        }
     }
 }
