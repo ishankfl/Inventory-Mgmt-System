@@ -69,6 +69,28 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateReceipt(Guid id, [FromBody] ReceiptUpdateDto receiptDto)
+        {
+            try
+            {
+                var updatedReceipt = await _receiptService.UpdateReceiptAsync(id, receiptDto);
+                return Ok(new { success = true, data = updatedReceipt });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReceipt(Guid id)
         {
