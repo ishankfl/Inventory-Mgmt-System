@@ -97,7 +97,110 @@ namespace Inventory_Mgmt_System.Services
         {
             return await _receiptRepository.DeleteReceiptAsync(id);
         }
+
+
+        public async Task<Receipt> UpdateReceiptAsync(Guid id, ReceiptUpdateDto receiptDto)
+        {
+            var existingReceipt = await _receiptRepository.GetReceiptByIdAsync(id);
+            if (existingReceipt == null)
+                throw new KeyNotFoundException($"Receipt with ID {id} not found");
+
+            var vendor = await _vendorRepository.GetVendorById(receiptDto.VendorId);
+            if (vendor == null)
+                throw new ArgumentException("Vendor not found");
+
+            existingReceipt.ReceiptDate = receiptDto.ReceiptDate;
+            existingReceipt.BillNo = receiptDto.BillNo;
+            existingReceipt.VendorId = receiptDto.VendorId;
+
+            var stockChanges = new Dictionary<Guid, int>();
+
+            var updatedDetails = new List<ReceiptDetail>();
+            foreach (var detailDto in receiptDto.ReceiptDetails)
+            {
+                var item = await _itemRepository.GetByIdAsync(detailDto.ItemId);
+                if (item == null)
+                    throw new ArgumentException($"Item with ID {detailDto.ItemId} not found");
+
+                var existingDetail = existingReceipt.ReceiptDetails.FirstOrDefault(rd => rd.Id == detailDto.Id);
+
+                if (existingDetail != null)
+                {
+                    var quantityDifference = detailDto.Quantity - existingDetail.Quantity;
+                    if (quantityDifference != 0)
+                    {
+                        if (stockChanges.ContainsKey(detailDto.ItemId))
+                            stockChanges[detailDto.ItemId] += int.Parse(quantityDifference.ToString());
+                        else
+                            stockChanges.Add(detailDto.ItemId, int.Parse(quantityDifference.ToString()));
+                    }
+
+                    existingDetail.ItemId = detailDto.ItemId;
+                    existingDetail.Quantity = detailDto.Quantity;
+                    existingDetail.Rate = detailDto.Rate;
+                    updatedDetails.Add(existingDetail);
+                }
+                else
+                {
+                    var newDetail = new ReceiptDetail
+                    {
+                        Id = Guid.NewGuid(),
+                        ReceiptId = id,
+                        ItemId = detailDto.ItemId,
+                        Quantity = detailDto.Quantity,
+                        Rate = detailDto.Rate
+                    };
+                    updatedDetails.Add(newDetail);
+
+                    if (stockChanges.ContainsKey(detailDto.ItemId))
+                        stockChanges[detailDto.ItemId] += detailDto.Quantity;
+                    else
+                        stockChanges.Add(detailDto.ItemId, detailDto.Quantity);
+                }
+            }
+
+            var removedDetails = existingReceipt.ReceiptDetails
+                .Where(ed => !receiptDto.ReceiptDetails.Any(rd => rd.Id == ed.Id))
+                .ToList();
+
+            foreach (var removedDetail in removedDetails)
+            {
+                if (stockChanges.ContainsKey(removedDetail.ItemId))
+                    stockChanges[removedDetail.ItemId] -= int.Parse(removedDetail.Quantity.ToString());
+                else
+                    stockChanges.Add(removedDetail.ItemId, - int.Parse(removedDetail.Quantity.ToString()));
+            }
+
+            existingReceipt.ReceiptDetails = updatedDetails;
+
+            var updatedReceipt = await _receiptRepository.UpdateReceiptAsync(existingReceipt);
+
+            foreach (var stockChange in stockChanges)
+            {
+                var stock = await _stockService.GetStockByItemIdAsync(stockChange.Key);
+                if (stock == null)
+                {
+                    if (stockChange.Value > 0)
+                    {
+                        await _stockService.AddStockAsync(new Stock
+                        {
+                            CurrentQuantity = stockChange.Value,
+                            ItemId = stockChange.Key
+                        });
+                    }
+                }
+                else
+                {
+                    stock.CurrentQuantity += stockChange.Value;
+                    await _stockService.UpdateStockAsync(stock);
+                }
+            }
+
+            return updatedReceipt;
+        }
     }
+
+
 
   
 }
