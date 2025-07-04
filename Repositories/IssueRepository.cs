@@ -25,14 +25,18 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 const string insertIssueQuery = @"
                     INSERT INTO ""Issues""
-                    (""Id"", ""IssueId"", ""IssueDate"", ""Department"", ""IssuedBy"")
-                    VALUES (@Id, @IssueId, @IssueDate, @Department, @IssuedByUserId)";
+                    (""Id"", ""IssueId"", ""IssueDate"", ""InvoiceNumber"", ""InvoiceDate"", ""Customer"", ""DeliveryNote"", ""Department"", ""IssuedByUserId"")
+                    VALUES (@Id, @IssueId, @IssueDate, @InvoiceNumber, @InvoiceDate, @Customer, @DeliveryNote, @Department, @IssuedByUserId)";
 
                 await connection.ExecuteAsync(insertIssueQuery, new
                 {
                     issue.Id,
                     issue.IssueId,
                     issue.IssueDate,
+                    issue.InvoiceNumber,
+                    issue.InvoiceDate,
+                    issue.Customer,
+                    issue.DeliveryNote,
                     issue.Department,
                     issue.IssuedByUserId
                 }, transaction);
@@ -46,6 +50,7 @@ namespace Inventory_Mgmt_System.Repositories
 
                     foreach (var detail in issue.IssueDetails)
                     {
+                        detail.Id = detail.Id == Guid.Empty ? Guid.NewGuid() : detail.Id;
                         detail.IssueId = issue.Id;
                         await connection.ExecuteAsync(insertDetailQuery, new
                         {
@@ -55,7 +60,6 @@ namespace Inventory_Mgmt_System.Repositories
                             detail.Quantity
                         }, transaction);
 
-                        // Deduct stock
                         await AdjustStockAsync(connection, transaction, detail.ItemId, -detail.Quantity);
                     }
                 }
@@ -78,6 +82,9 @@ namespace Inventory_Mgmt_System.Repositories
             const string issueQuery = @"SELECT * FROM ""Issues"" WHERE ""Id"" = @Id";
             var issue = await connection.QueryFirstOrDefaultAsync<Issue>(issueQuery, new { Id = id });
             if (issue == null) return null;
+
+            const string userQuery = @"SELECT * FROM ""Users"" WHERE ""Id"" = @UserId";
+            issue.IssuedByUser = await connection.QueryFirstOrDefaultAsync<User>(userQuery, new { UserId = issue.IssuedByUserId });
 
             const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
             var details = (await connection.QueryAsync<IssueDetail>(
@@ -104,6 +111,10 @@ namespace Inventory_Mgmt_System.Repositories
 
             foreach (var issue in issues)
             {
+                const string userQuery = @"SELECT * FROM ""Users"" WHERE ""Id"" = @UserId";
+                issue.IssuedByUser = await connection.QueryFirstOrDefaultAsync<User>(
+                    userQuery, new { UserId = issue.IssuedByUserId });
+
                 const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
                 var details = (await connection.QueryAsync<IssueDetail>(
                     detailsQuery, new { IssueId = issue.Id })).ToList();
@@ -139,7 +150,6 @@ namespace Inventory_Mgmt_System.Repositories
 
                 foreach (var detail in details)
                 {
-                    // Rollback stock (re-add issued quantity)
                     await AdjustStockAsync(connection, transaction, detail.ItemId, detail.Quantity);
                 }
 
@@ -170,14 +180,22 @@ namespace Inventory_Mgmt_System.Repositories
                 const string updateIssueQuery = @"
                     UPDATE ""Issues""
                     SET ""IssueDate"" = @IssueDate,
+                        ""InvoiceNumber"" = @InvoiceNumber,
+                        ""InvoiceDate"" = @InvoiceDate,
+                        ""Customer"" = @Customer,
+                        ""DeliveryNote"" = @DeliveryNote,
                         ""Department"" = @Department,
-                        ""IssuedBy"" = @IssuedByUserId
+                        ""IssuedByUserId"" = @IssuedByUserId
                     WHERE ""Id"" = @Id";
 
                 await connection.ExecuteAsync(updateIssueQuery, new
                 {
                     issue.Id,
                     issue.IssueDate,
+                    issue.InvoiceNumber,
+                    issue.InvoiceDate,
+                    issue.Customer,
+                    issue.DeliveryNote,
                     issue.Department,
                     issue.IssuedByUserId
                 }, transaction);

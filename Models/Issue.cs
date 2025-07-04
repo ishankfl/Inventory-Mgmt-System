@@ -10,19 +10,31 @@ namespace Inventory_Mgmt_System.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public string IssueId { get; set; } // e.g., auto-generated "ISS-0001"
+        public string IssueId { get; set; }
 
         [Required]
         public DateTime IssueDate { get; set; }
 
-        [Required]
         [MaxLength(100)]
-        public string Department { get; set; } // To whom issued
+        public string InvoiceNumber { get; set; }
+
+        public DateTime? InvoiceDate { get; set; }
+
+        [MaxLength(255)]
+        public string Customer { get; set; }
+
+        [MaxLength(500)]
+        public string DeliveryNote { get; set; }
 
         [Required]
+        [MaxLength(100)]
         [ForeignKey("IssuedByUser")]
         public Guid IssuedByUserId { get; set; }
-        public User IssuedByUser { get; set; } // Reference to User model
+        public User IssuedByUser { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string Department { get; set; }
 
         public ICollection<IssueDetail> IssueDetails { get; set; }
     }

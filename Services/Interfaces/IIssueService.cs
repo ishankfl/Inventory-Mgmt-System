@@ -1,23 +1,13 @@
-﻿using Inventory_Mgmt_System.Dtos;
-using Inventory_Mgmt_System.Models;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using Inventory_Mgmt_System.Models;
 
 namespace Inventory_Mgmt_System.Services.Interfaces
 {
     public interface IIssueService
     {
-        Task<ProductIssue> IssueProductsAsync(Guid departmentId, Guid issuedById, List<IssueItemDto> items);
-        Task<ProductIssue?> GetIssueByIdAsync(Guid id);
-        Task<IEnumerable<ProductIssue>> GetAllIssuesAsync();
-        Task CompleteIssueAsync(Guid issueId);
-        Task<ProductIssue> IssueProductOneAsync(Guid departmentId, Guid issuedById, IssueItemDto item);
-
-        Task<ProductIssue?> GetIssuesByDepartmentId(string departmentId);
-        Task<ProductIssue> RemoveItemFromIssue(string issueId, string productId);
-        Task<ProductIssue> MakeCompleteIssue(Guid issueId);
-        Task<Product> UpdateOneProductQty(Guid issuedId, Guid productId, int newQty);
-
+        Task<Issue> CreateIssueAsync(Issue issue);
+        Task<Issue> GetIssueByIdAsync(Guid id);
+        Task<IEnumerable<Issue>> GetAllIssuesAsync();
+        Task<Issue> UpdateIssueAsync(Issue issue);
+        Task<bool> DeleteIssueAsync(Guid id);
     }
 }

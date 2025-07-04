@@ -1,17 +1,13 @@
-﻿using Inventory_Mgmt_System.Dtos;
-using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Models;
+using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Protocol;
 using System;
-using System.Threading.Tasks;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
-    [Route("api/issues")]
-    /*  [Authorize(Roles = "Admin,Staff")] */
+    [Route("api/[controller]")]
     public class IssueController : ControllerBase
     {
         private readonly IIssueService _issueService;
@@ -21,81 +17,47 @@ namespace Inventory_Mgmt_System.Controllers
             _issueService = issueService;
         }
 
-        [HttpPost("OneProduct")]
-        public async Task<IActionResult> CreateIssue([FromBody] IssueRequestDtoOne request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                IssueItemDto item = new IssueItemDto
-                {
-                    ProductId = request.ProductId,
-                    QuantityIssued = request.QuantityIssued,
-                };
-                var result = await _issueService.IssueProductOneAsync(
-                  request.DepartmentId,
-                  request.IssuedById,
-                  item);
-
-                return StatusCode(200, new { data = result });
-
-            }
-
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Something went wrong");
-            }
-
-        }
-
         [HttpPost]
-        public async Task<IActionResult> CreateIssue([FromBody] IssueRequestDto request)
+        public async Task<IActionResult> CreateIssue([FromBody] Issue issue)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
-                var result = await _issueService.IssueProductsAsync(
-                    request.DepartmentId,
-                    request.IssuedById,
-                    request.Items);
+                if (issue == null)
+                    return BadRequest("Issue is null");
 
-                return StatusCode(200, new { data = result });
-
+                var createdIssue = await _issueService.CreateIssueAsync(issue);
+                return CreatedAtAction(nameof(GetIssueById), new { id = createdIssue.Id }, createdIssue);
             }
-            catch (KeyNotFoundException ex)
+            catch (ArgumentException ex)
             {
-                return NotFound(new { error = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "An unexpected error occurred." });
+                // Log exception here if needed
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetIssue(Guid id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetIssueById(Guid id)
         {
             try
             {
                 var issue = await _issueService.GetIssueByIdAsync(id);
-                return issue != null ? Ok(issue) : NotFound();
+                if (issue == null)
+                    return NotFound();
+
+                return Ok(issue);
             }
-            catch (Exception)
+            catch (ArgumentException ex)
             {
-                return StatusCode(500, new { error = "Failed to retrieve issue." });
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Log exception here if needed
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -107,103 +69,58 @@ namespace Inventory_Mgmt_System.Controllers
                 var issues = await _issueService.GetAllIssuesAsync();
                 return Ok(issues);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Failed to retrieve issues." });
+                // Log exception here if needed
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-
-        [HttpPatch("{id:guid}/complete")]
-        public async Task<IActionResult> CompleteIssue(Guid id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateIssue(Guid id, [FromBody] Issue issue)
         {
             try
             {
-                await _issueService.CompleteIssueAsync(id);
-                return NoContent();
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { error = ex.Message });
-            }
-            catch (Exception)
-            {
-                return StatusCode(500, new { error = "Failed to complete issue." });
-            }
-        }
+                if (issue == null || id != issue.Id)
+                    return BadRequest("Issue is null or ID mismatch.");
 
+                var updatedIssue = await _issueService.UpdateIssueAsync(issue);
+                if (updatedIssue == null)
+                    return NotFound();
 
-        [HttpGet("deptId/{departmentId}")]
-        public async Task<IActionResult> GetIssuesByDepartmentId(string departmentId)
-        {
-            try
-            {
-
-                var result = await _issueService.GetIssuesByDepartmentId(departmentId);
-                if (result == null)
-                {
-                    return StatusCode(200, "[]");
-                }
-                return Ok(result);
+                return Ok(updatedIssue);
             }
-            catch (Exception e)
+            catch (ArgumentException ex)
             {
-                return StatusCode(500, "{'error': 'Something went wrong'}");
-            }
-        }
-
-        [Authorize]
-        [HttpDelete("removeItem/{issueId}/Product/{productId}")]
-        public async Task<IActionResult> RemoveItemFromIssue(string issueId, string productId)
-        {
-            try
-            {
-                var result = await _issueService.RemoveItemFromIssue(issueId, productId);
-                return Ok(new { success = true, message = "Item removed from issue", updated = result });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                // Log exception here if needed
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
-        [Authorize]
-        [HttpPost("CompleteIssue/{issueId}")]
-        public async Task<IActionResult> MakeCompleteIssue(string issueId)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteIssue(Guid id)
         {
             try
             {
-                var issue = await _issueService.MakeCompleteIssue(Guid.Parse(issueId));
+                var deleted = await _issueService.DeleteIssueAsync(id);
+                if (!deleted)
+                    return NotFound();
 
-                if (issue == null)
-                {
-                    return NotFound(new { message = "Issue not found." });
-                }
-
-                return Ok(new { message = "Successfully completed issue." });
+                return NoContent();
             }
-            catch (Exception e)
+            catch (ArgumentException ex)
             {
-                // Log the exception 'e' here as needed
-                return StatusCode(500, new { message = "An error occurred while completing the issue." });
+                return BadRequest(ex.Message);
             }
-        }
-
-        [Authorize]
-        [HttpGet("{IssueId}/{ProductId}/{newQuantity}")]
-        public async Task<IActionResult> UpdateProduct(string issueId, string productId, string newQuantity)
-        {
-            try
+            catch (Exception ex)
             {
-                var product = await _issueService.UpdateOneProductQty(Guid.Parse(issueId), Guid.Parse(productId),
-                   int.Parse(newQuantity));
-                return StatusCode(200, product);
+                // Log exception here if needed
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-            catch(Exception e)
-            {
-                return StatusCode(500, new { success = false, message = $"Some thing wend wrong {e}" });
-            }
-
         }
     }
 }

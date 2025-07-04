@@ -74,7 +74,7 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 
 builder.Services.AddScoped<IIssueProductRepository, IssueProductRepository>();
-builder.Services.AddScoped<IIssueService, IssueService>();
+builder.Services.AddScoped<IIssueService, IssueProductService>();
 // and use it:
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
