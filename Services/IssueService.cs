@@ -10,12 +10,12 @@ namespace Inventory_Mgmt_System.Services
 {
     public class IssueService : IIssueService
     {
-        private readonly IIssueRepository _issueRepository;
+        private readonly IIssueProductRepository _issueRepository;
         private readonly IProductRepository _productRepository;
         private readonly AppDbContext _context;
 
         public IssueService(
-            IIssueRepository issueRepository,
+            IIssueProductRepository issueRepository,
             IProductRepository productRepository,
             AppDbContext context)
         {

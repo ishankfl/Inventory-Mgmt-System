@@ -111,7 +111,7 @@ namespace Inventory_Mgmt_System.Repositories
         {
             using (var connection = _dapperDbContext.CreateConnection())
             {
-                string receiptsQuery = @"SELECT * FROM ""Receipts"" ORDER BY ""ReceiptDate""";
+                string receiptsQuery = @"SELECT * FROM ""Receipts"" ORDER BY ""ReceiptDate"" DESC";
                 var receipts = (await connection.QueryAsync<Receipt>(receiptsQuery)).ToList();
 
                 foreach (var receipt in receipts)
@@ -161,7 +161,6 @@ namespace Inventory_Mgmt_System.Repositories
             using var connection = _dapperDbContext.CreateConnection();
              connection.Open();
 
-            // Start transaction for atomicity
             using var transaction = connection.BeginTransaction();
 
             try
@@ -182,7 +181,6 @@ namespace Inventory_Mgmt_System.Repositories
                     receipt.VendorId
                 }, transaction);
 
-                // Fetch existing receipt details
                 var existingDetails = (await connection.QueryAsync<ReceiptDetail>(
                     @"SELECT * FROM ""ReceiptDetails"" WHERE ""ReceiptId"" = @ReceiptId",
                     new { ReceiptId = receipt.Id },

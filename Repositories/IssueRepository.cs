@@ -1,178 +1,271 @@
-﻿using Inventory_Mgmt_System.Data;
+﻿using Dapper;
+using Inventory_Mgmt_System.Data;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
-using Inventory_Mgmt_System.Services;
-using Microsoft.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Inventory_Mgmt_System.Repositories
 {
     public class IssueRepository : IIssueRepository
     {
-        private readonly AppDbContext _context;
+        private readonly DapperDbContext _dapperDbContext;
 
-        public IssueRepository(AppDbContext context)
+        public IssueRepository(DapperDbContext dapperDbContext)
         {
-            _context = context;
+            _dapperDbContext = dapperDbContext;
         }
 
-        public async Task<ProductIssue> CreateIssueAsync(ProductIssue issue)
+        public async Task<Issue> CreateIssueAsync(Issue issue)
         {
-            await _context.ProductIssues.AddAsync(issue);
-            await _context.SaveChangesAsync();
-            return issue;
-        }
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
 
-        public async Task<bool> HasActiveIssueAsync(Guid departmentId)
-        {
-            return await _context.ProductIssues
-                .AnyAsync(i => i.DepartmentId == departmentId && !i.IsCompleted);
-        }
-
-        public async Task<ProductIssue?> GetIssueByIdAsync(Guid id)
-        {
-            return await _context.ProductIssues
-                .Include(i => i.Department)
-                .Include(i => i.IssuedBy)
-                .Include(i => i.IssueItems)
-                    .ThenInclude(ii => ii.Product)
-                .FirstOrDefaultAsync(i => i.Id == id);
-        }
-
-        public async Task<IEnumerable<ProductIssue>> GetAllIssuesAsync()
-        {
-            return await _context.ProductIssues
-                .Include(i => i.Department)
-                .Include(i => i.IssuedBy)
-                .Include(i => i.IssueItems)
-                    .ThenInclude(ii => ii.Product)
-                .OrderByDescending(i => i.IssueDate)
-                .ToListAsync();
-        }
-
-        public async Task<ProductIssue?> GetLatestUncompletedIssueByDepartmentAsync(Guid departmentId)
-        {
-            return await _context.ProductIssues
-                .Where(i => i.DepartmentId == departmentId && !i.IsCompleted)
-                .OrderByDescending(i => i.IssueDate)
-                .FirstOrDefaultAsync();
-        }
-
-        public Task<bool> CheckIssueCompletedOrNot(Guid departmentId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ProductIssue?> GetIssuesByDepartmentId(string departmentId)
-        {
-            Guid departmentGuid = Guid.Parse(departmentId);
-
-            var latestProduct = await _context.ProductIssues
-                .Where(issue => issue.DepartmentId == departmentGuid).
-                Where(issue => issue.IsCompleted == false && !issue.IsCompleted)
-                .Include(issue => issue.Department)
-                .Include(issue => issue.IssuedBy)
-                .Include(issue => issue.IssueItems).Include(i => i.IssueItems).ThenInclude(ii => ii.Product)
-                .OrderByDescending(issue => issue.IssueDate) // if you want latest
-                .FirstOrDefaultAsync(); // 👈 Fetch one
-
-            return latestProduct;
-        }
-        public async Task<ProductIssue?> MakeCompleteIssue(Guid issueId)
-        {
-            var issue = await _context.ProductIssues.FirstOrDefaultAsync(item => item.Id == issueId);
-
-            if (issue == null)
+            try
             {
-                return null; // or throw an exception, depending on your use case
+                const string insertIssueQuery = @"
+                    INSERT INTO ""Issues""
+                    (""Id"", ""IssueId"", ""IssueDate"", ""Department"", ""IssuedBy"")
+                    VALUES (@Id, @IssueId, @IssueDate, @Department, @IssuedByUserId)";
+
+                await connection.ExecuteAsync(insertIssueQuery, new
+                {
+                    issue.Id,
+                    issue.IssueId,
+                    issue.IssueDate,
+                    issue.Department,
+                    issue.IssuedByUserId
+                }, transaction);
+
+                if (issue.IssueDetails != null && issue.IssueDetails.Any())
+                {
+                    const string insertDetailQuery = @"
+                        INSERT INTO ""IssueDetails""
+                        (""Id"", ""IssueId"", ""ItemId"", ""Quantity"")
+                        VALUES (@Id, @IssueId, @ItemId, @Quantity)";
+
+                    foreach (var detail in issue.IssueDetails)
+                    {
+                        detail.IssueId = issue.Id;
+                        await connection.ExecuteAsync(insertDetailQuery, new
+                        {
+                            detail.Id,
+                            detail.IssueId,
+                            detail.ItemId,
+                            detail.Quantity
+                        }, transaction);
+
+                        // Deduct stock
+                        await AdjustStockAsync(connection, transaction, detail.ItemId, -detail.Quantity);
+                    }
+                }
+
+                transaction.Commit();
+                return issue;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<Issue> GetIssueByIdAsync(Guid id)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+
+            const string issueQuery = @"SELECT * FROM ""Issues"" WHERE ""Id"" = @Id";
+            var issue = await connection.QueryFirstOrDefaultAsync<Issue>(issueQuery, new { Id = id });
+            if (issue == null) return null;
+
+            const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
+            var details = (await connection.QueryAsync<IssueDetail>(
+                detailsQuery, new { IssueId = id })).ToList();
+
+            foreach (var detail in details)
+            {
+                const string itemQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = @ItemId";
+                detail.Item = await connection.QueryFirstOrDefaultAsync<Item>(
+                    itemQuery, new { ItemId = detail.ItemId });
             }
 
-            issue.IsCompleted = true;
-
-            _context.ProductIssues.Update(issue);
-            await _context.SaveChangesAsync();
-
+            issue.IssueDetails = details;
             return issue;
         }
 
-        // Remove item from issue
-        public async Task<ProductIssue> RemoveItemFromIssue(Guid issueId, ProductIssue product)
+        public async Task<IEnumerable<Issue>> GetAllIssuesAsync()
         {
-            var issue = await _context.ProductIssues
-                .Include(i => i.IssueItems)
-                .FirstOrDefaultAsync(i => i.Id == issueId);
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
 
-            if (issue == null)
-                throw new Exception("Issue not found");
+            const string issuesQuery = @"SELECT * FROM ""Issues"" ORDER BY ""IssueDate"" DESC";
+            var issues = (await connection.QueryAsync<Issue>(issuesQuery)).ToList();
 
-            var productId = product.IssueItems.FirstOrDefault()?.ProductId;
+            foreach (var issue in issues)
+            {
+                const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
+                var details = (await connection.QueryAsync<IssueDetail>(
+                    detailsQuery, new { IssueId = issue.Id })).ToList();
 
-            if (productId == null)
-                throw new Exception("ProductId not found in input");
-
-            var itemToRemove = issue.IssueItems
-                .FirstOrDefault(i => i.ProductId == productId);
-
-            if (itemToRemove == null)
-                throw new Exception("Product not found in issue");
-
-            issue.IssueItems.Remove(itemToRemove);
-            _context.IssueItems.Remove(itemToRemove);
-
-            return issue;
-        }
-
-        public async Task<List<Product>> GetTopIssuedProductsAsync()
-        {
-            var result = await _context.IssueItems
-                .GroupBy(pi => pi.Product.Id)
-                .Select(group => new
+                foreach (var detail in details)
                 {
-                    ProductId = group.Key,
-                    TotalIssued = group.Sum(pi => pi.QuantityIssued)
-                })
-                .OrderByDescending(x => x.TotalIssued)
-                .Take(10)
-                .Join(_context.Products,
-                      g => g.ProductId,
-                      p => p.Id,
-                      (g, p) => new Product
-                      {
-                          Id = p.Id,
-                          Name = p.Name,
-                          Description = p.Description,
-                          Price = p.Price,
-                          Quantity = g.TotalIssued
-                      })
-                .ToListAsync();
+                    const string itemQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = @ItemId";
+                    detail.Item = await connection.QueryFirstOrDefaultAsync<Item>(
+                        itemQuery, new { ItemId = detail.ItemId });
+                }
 
-            return result;
+                issue.IssueDetails = details;
+            }
+
+            return issues;
         }
 
-        public async Task<Product> UpdateOneProductQty(Guid issuedId, Guid productId, int newQty)
+        public async Task<bool> DeleteIssueAsync(Guid id)
         {
-            var issue = await _context.ProductIssues
-                .Include(pi => pi.IssueItems)
-                    .ThenInclude(ii => ii.Product) // make sure Product is eagerly loaded
-                .FirstOrDefaultAsync(pi => pi.Id == issuedId);
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
 
-            if (issue == null)
-                throw new Exception("ProductIssue not found");
+            try
+            {
+                const string checkQuery = @"SELECT COUNT(*) FROM ""Issues"" WHERE ""Id"" = @Id";
+                var exists = await connection.ExecuteScalarAsync<int>(checkQuery, new { Id = id }, transaction);
+                if (exists == 0) return false;
 
-            var issueItem = issue.IssueItems
-                .FirstOrDefault(item => item.Product.Id == productId);
+                const string getDetailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
+                var details = (await connection.QueryAsync<IssueDetail>(
+                    getDetailsQuery, new { IssueId = id }, transaction)).ToList();
 
-            if (issueItem == null)
-                throw new Exception("Product not found in issue");
+                foreach (var detail in details)
+                {
+                    // Rollback stock (re-add issued quantity)
+                    await AdjustStockAsync(connection, transaction, detail.ItemId, detail.Quantity);
+                }
 
-            issueItem.QuantityIssued = newQty;
+                const string deleteDetailsQuery = @"DELETE FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
+                await connection.ExecuteAsync(deleteDetailsQuery, new { IssueId = id }, transaction);
 
-            await _context.SaveChangesAsync();
+                const string deleteIssueQuery = @"DELETE FROM ""Issues"" WHERE ""Id"" = @Id";
+                await connection.ExecuteAsync(deleteIssueQuery, new { Id = id }, transaction);
 
-            return issueItem.Product; // returning the updated product
+                transaction.Commit();
+                return true;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
+        public async Task<Issue> UpdateIssueAsync(Issue issue)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+            using var transaction = connection.BeginTransaction();
 
+            try
+            {
+                const string updateIssueQuery = @"
+                    UPDATE ""Issues""
+                    SET ""IssueDate"" = @IssueDate,
+                        ""Department"" = @Department,
+                        ""IssuedBy"" = @IssuedByUserId
+                    WHERE ""Id"" = @Id";
 
+                await connection.ExecuteAsync(updateIssueQuery, new
+                {
+                    issue.Id,
+                    issue.IssueDate,
+                    issue.Department,
+                    issue.IssuedByUserId
+                }, transaction);
+
+                var existingDetails = (await connection.QueryAsync<IssueDetail>(
+                    @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId",
+                    new { IssueId = issue.Id },
+                    transaction
+                )).ToList();
+
+                var incomingDetails = issue.IssueDetails ?? new List<IssueDetail>();
+
+                var detailsToUpdate = incomingDetails
+                    .Where(d => d.Id != Guid.Empty && existingDetails.Any(ed => ed.Id == d.Id))
+                    .ToList();
+
+                var detailsToInsert = incomingDetails
+                    .Where(d => d.Id == Guid.Empty || !existingDetails.Any(ed => ed.Id == d.Id))
+                    .ToList();
+
+                var detailsToDelete = existingDetails
+                    .Where(ed => !incomingDetails.Any(d => d.Id == ed.Id))
+                    .ToList();
+
+                foreach (var detail in detailsToDelete)
+                {
+                    await connection.ExecuteAsync(
+                        @"DELETE FROM ""IssueDetails"" WHERE ""Id"" = @Id AND ""IssueId"" = @IssueId",
+                        new { detail.Id, IssueId = issue.Id },
+                        transaction
+                    );
+
+                    await AdjustStockAsync(connection, transaction, detail.ItemId, detail.Quantity);
+                }
+
+                foreach (var detail in detailsToUpdate)
+                {
+                    var oldDetail = existingDetails.First(ed => ed.Id == detail.Id);
+                    var quantityDiff = oldDetail.Quantity - detail.Quantity;
+
+                    await connection.ExecuteAsync(
+                        @"UPDATE ""IssueDetails""
+                          SET ""ItemId"" = @ItemId, ""Quantity"" = @Quantity
+                          WHERE ""Id"" = @Id AND ""IssueId"" = @IssueId",
+                        new { detail.Id, detail.ItemId, detail.Quantity, IssueId = issue.Id },
+                        transaction
+                    );
+
+                    if (quantityDiff != 0)
+                    {
+                        await AdjustStockAsync(connection, transaction, detail.ItemId, quantityDiff);
+                    }
+                }
+
+                foreach (var detail in detailsToInsert)
+                {
+                    detail.Id = Guid.NewGuid();
+                    detail.IssueId = issue.Id;
+
+                    await connection.ExecuteAsync(
+                        @"INSERT INTO ""IssueDetails"" (""Id"", ""IssueId"", ""ItemId"", ""Quantity"")
+                          VALUES (@Id, @IssueId, @ItemId, @Quantity)",
+                        detail,
+                        transaction
+                    );
+
+                    await AdjustStockAsync(connection, transaction, detail.ItemId, -detail.Quantity);
+                }
+
+                transaction.Commit();
+                return await GetIssueByIdAsync(issue.Id);
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        private async Task AdjustStockAsync(IDbConnection connection, IDbTransaction transaction, Guid itemId, decimal quantityDiff)
+        {
+            await connection.ExecuteAsync(
+                @"UPDATE ""Stocks"" 
+                  SET ""CurrentQuantity"" = ""CurrentQuantity"" + @QuantityDiff
+                  WHERE ""ItemId"" = @ItemId",
+                new { ItemId = itemId, QuantityDiff = quantityDiff },
+                transaction
+            );
+        }
     }
 }

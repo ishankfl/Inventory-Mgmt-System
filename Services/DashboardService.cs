@@ -7,11 +7,11 @@ namespace Inventory_Mgmt_System.Services
     public class DashboardService : IDashboardService
     {
         private readonly IProductRepository _productRepository;
-        private readonly IIssueRepository _issueRepository;
+        private readonly IIssueProductRepository _issueRepository;
         private readonly IDepartmentRepository _departmentRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserRepository _userRepository;
-        public DashboardService(IProductRepository productRepository, IIssueRepository issueRepository,
+        public DashboardService(IProductRepository productRepository, IIssueProductRepository issueRepository,
             IDepartmentRepository departmentRepository,
             ICategoryRepository categoryRepository,
             IUserRepository userRepository

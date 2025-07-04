@@ -106,7 +106,7 @@ namespace Inventory_Mgmt_System.Services
             if (existingReceipt == null) 
                 throw new KeyNotFoundException($"Receipt with ID {id} not found");
 
-            var vendorExists = await _vendorRepository.Exists(receiptDto.VendorId); // Fixed: Pass VendorId instead of DTO
+            var vendorExists = await _vendorRepository.Exists(receiptDto.VendorId); 
             if (!vendorExists)
                 throw new ArgumentException("Vendor not found");
 
@@ -117,7 +117,7 @@ namespace Inventory_Mgmt_System.Services
             var stockChanges = new Dictionary<Guid, decimal>();
 
             var updatedDetails = new List<ReceiptDetail>();
-            foreach (var detailDto in receiptDto.ReceiptDetails ) // Ensure case matches
+            foreach (var detailDto in receiptDto.ReceiptDetails ) 
             {
                 var itemExists = await _itemRepository.Exists(detailDto.ItemId);
                 if (!itemExists)
