@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
+using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +13,11 @@ namespace Inventory_Mgmt_System.Controllers
     [ApiController]
     [Route("api/issues")]
     /*  [Authorize(Roles = "Admin,Staff")] */
-    public class IssueController : ControllerBase
+    public class IssueProductController : ControllerBase
     {
-        private readonly IIssueService _issueService;
+        private readonly IIssueProductService _issueService;
 
-        public IssueController(IIssueService issueService)
+        public IssueProductController(IIssueProductService issueService)
         {
             _issueService = issueService;
         }

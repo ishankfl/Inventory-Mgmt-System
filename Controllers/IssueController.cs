@@ -34,7 +34,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here if needed
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -56,7 +55,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here if needed
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -71,7 +69,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here if needed
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -96,7 +93,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here if needed
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -118,7 +114,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception here if needed
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

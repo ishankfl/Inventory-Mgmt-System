@@ -97,7 +97,7 @@ namespace Inventory_Mgmt_System.Repositories
                 string query = @"SELECT * FROM ""Users"" WHERE ""Email"" = @Email";
 
                 var user = await dbConnection.QueryFirstOrDefaultAsync<User>(query, new { Email = email });
-                return user;
+                    return user;
             }
         }
 

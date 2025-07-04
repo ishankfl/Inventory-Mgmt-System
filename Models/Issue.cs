@@ -20,21 +20,18 @@ namespace Inventory_Mgmt_System.Models
 
         public DateTime? InvoiceDate { get; set; }
 
-        [MaxLength(255)]
-        public string Customer { get; set; }
-
         [MaxLength(500)]
         public string DeliveryNote { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        [ForeignKey("IssuedByUser")]
+        [ForeignKey(nameof(IssuedByUser))]
         public Guid IssuedByUserId { get; set; }
         public User IssuedByUser { get; set; }
 
         [Required]
-        [MaxLength(100)]
-        public string Department { get; set; }
+        [ForeignKey(nameof(Department))]
+        public Guid DepartmentId { get; set; }    
+        public Department Department { get; set; } 
 
         public ICollection<IssueDetail> IssueDetails { get; set; }
     }

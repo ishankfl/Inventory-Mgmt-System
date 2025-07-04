@@ -74,7 +74,7 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 
 builder.Services.AddScoped<IIssueProductRepository, IssueProductRepository>();
-builder.Services.AddScoped<IIssueService, IssueProductService>();
+builder.Services.AddScoped<IIssueProductService, IssueProductService>();
 // and use it:
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
@@ -94,6 +94,10 @@ builder.Services.AddScoped<IReceiptService, ReceiptService>();
 
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
+
+builder.Services.AddScoped<IIssueRepository, IssueRepository>();
+builder.Services.AddScoped<IIssueService, IssueService>();
+
 
 
 builder.Services.AddSingleton<DapperDbContext>();
