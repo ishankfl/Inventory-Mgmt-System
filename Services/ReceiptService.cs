@@ -37,7 +37,8 @@ namespace Inventory_Mgmt_System.Services
                 ReceiptDate = receiptDto.ReceiptDate,
                 BillNo = receiptDto.BillNo,
                 VendorId = receiptDto.VendorId,
-                ReceiptDetails = new List<ReceiptDetail>()
+                ReceiptDetails = new List<ReceiptDetail>(),
+                ReceiptId = receiptDto.ReceiptId
             };
             try
             {
@@ -200,6 +201,16 @@ namespace Inventory_Mgmt_System.Services
             }
 
             return updatedReceipt;
+        }
+
+        public async Task<IEnumerable<ReceiptDetail>> GetAllReceiptDetailsAsync()
+        {
+            return await _receiptRepository.GetAllReceiptDetailsAsync();
+        }
+
+        public async Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync()
+        {
+            return await _receiptRepository.GetSimplifiedReceiptDetailsAsync();
         }
 
     } 

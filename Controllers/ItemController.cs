@@ -21,8 +21,16 @@ namespace Inventory_Mgmt_System.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllItems()
         {
+            try
+            {
+
             var items = await _itemService.GetAllItemsAsync();
             return Ok(items);
+            }
+            catch(Exception ex) {
+            
+                return BadRequest(ex.ToString());
+            }
         }
 
         // GET: api/Item/{id}

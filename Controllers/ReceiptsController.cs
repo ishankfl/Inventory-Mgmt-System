@@ -107,5 +107,19 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
+        [HttpGet("details")]
+        public async Task<IActionResult> GetAllReceiptDetails()
+        {
+            var details = await _receiptService.GetAllReceiptDetailsAsync();
+            return Ok(details);
+        }
+
+        [HttpGet("details/simple")]
+        public async Task<IActionResult> GetSimplifiedReceiptDetails()
+        {
+            var details = await _receiptService.GetSimplifiedReceiptDetailsAsync();
+            return Ok(details);
+        }
     }
 }

@@ -57,7 +57,7 @@ namespace Inventory_Mgmt_System.Services
             if (issue.IssueDate == default)
                 throw new ArgumentException("Issue date is required.");
 
-            if (string.IsNullOrWhiteSpace(issue.Department))
+            if (string.IsNullOrWhiteSpace(issue.DepartmentId.ToString()))
                 throw new ArgumentException("Department is required.");
 
             if (issue.IssuedByUserId == Guid.Empty)

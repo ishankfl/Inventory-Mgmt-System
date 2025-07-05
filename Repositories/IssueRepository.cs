@@ -35,9 +35,9 @@ namespace Inventory_Mgmt_System.Repositories
                     issue.IssueDate,
                     issue.InvoiceNumber,
                     issue.InvoiceDate,
-                    issue.Customer,
-                    issue.DeliveryNote,
                     issue.Department,
+                    issue.DeliveryNote,
+                    issue.DepartmentId,
                     issue.IssuedByUserId
                 }, transaction);
 
@@ -194,7 +194,7 @@ namespace Inventory_Mgmt_System.Repositories
                     issue.IssueDate,
                     issue.InvoiceNumber,
                     issue.InvoiceDate,
-                    issue.Customer,
+                    issue.DepartmentId,
                     issue.DeliveryNote,
                     issue.Department,
                     issue.IssuedByUserId

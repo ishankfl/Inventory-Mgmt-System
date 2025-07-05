@@ -9,6 +9,9 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<IEnumerable<Receipt>> GetAllReceiptsAsync();
         Task<bool> DeleteReceiptAsync(Guid id);
         Task<Receipt> UpdateReceiptAsync(Receipt receipt);
+
+        Task<IEnumerable<ReceiptDetail>> GetAllReceiptDetailsAsync();
+        Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync();
     }
 
 }

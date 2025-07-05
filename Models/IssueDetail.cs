@@ -19,6 +19,8 @@ namespace Inventory_Mgmt_System.Models
         public Guid ItemId { get; set; }
         public Item Item { get; set; }
 
+        public decimal? IssueRate { get; set; }
+
         [Required]
         public decimal Quantity { get; set; }
     }

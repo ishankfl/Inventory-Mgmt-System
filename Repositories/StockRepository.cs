@@ -27,7 +27,7 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
                 var query = @"
                     SELECT s.*, i.* 
-                    FROM ""Stocks"" s
+                    FROM ""Stock"" s
                     INNER JOIN ""Items"" i ON s.""ItemId"" = i.""Id""";
 
                 var stocks = await dbConnection.QueryAsync<Stock, Item, Stock>(
@@ -49,7 +49,7 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
                 var query = @"
                     SELECT s.*, i.* 
-                    FROM ""Stocks"" s
+                    FROM ""Stock"" s
                     INNER JOIN ""Items"" i ON s.""ItemId"" = i.""Id""
                     WHERE s.""Id"" = @Id";
 
@@ -73,7 +73,7 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
                 var query = @"
                     SELECT s.*, i.* 
-                    FROM ""Stocks"" s
+                    FROM ""Stock"" s
                     INNER JOIN ""Items"" i ON s.""ItemId"" = i.""Id""
                     WHERE s.""ItemId"" = @ItemId";
 
@@ -96,7 +96,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
                 var query = @"
-                    INSERT INTO ""Stocks"" (""Id"", ""ItemId"", ""CurrentQuantity"")
+                    INSERT INTO ""Stock"" (""Id"", ""ItemId"", ""CurrentQuantity"")
                     VALUES (@Id, @ItemId, @CurrentQuantity)
                     RETURNING ""Id""";
 
@@ -117,7 +117,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
                 var query = @"
-                    UPDATE ""Stocks""
+                    UPDATE ""Stock""
                     SET ""CurrentQuantity"" = @CurrentQuantity
                     WHERE ""Id"" = @Id";
 
@@ -136,7 +136,7 @@ namespace Inventory_Mgmt_System.Repositories
             using (var dbConnection = _dapperContext.CreateConnection())
             {
                 dbConnection.Open();
-                var query = @"DELETE FROM ""Stocks"" WHERE ""Id"" = @Id";
+                var query = @"DELETE FROM ""Stock"" WHERE ""Id"" = @Id";
                 var affectedRows = await dbConnection.ExecuteAsync(query, new { Id = id });
                 return affectedRows > 0;
             }
@@ -147,7 +147,7 @@ namespace Inventory_Mgmt_System.Repositories
             using (var dbConnection = _dapperContext.CreateConnection())
             {
                 dbConnection.Open();
-                var query = @"SELECT ""CurrentQuantity"" FROM ""Stocks"" WHERE ""ItemId"" = @ItemId";
+                var query = @"SELECT ""CurrentQuantity"" FROM ""Stock"" WHERE ""ItemId"" = @ItemId";
                 return await dbConnection.ExecuteScalarAsync<decimal>(query, new { ItemId = itemId });
             }
         }

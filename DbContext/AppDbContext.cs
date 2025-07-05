@@ -34,6 +34,14 @@ namespace Inventory_Mgmt_System.Data
 
         public DbSet<ReceiptDetail> ReceiptDetails { get; set; }
 
+        public DbSet<Issue> Issues { get; set; }
+
+        public DbSet<IssueDetail> IssueDetails { get; set; }
+
+
+
+
+
 
 
 

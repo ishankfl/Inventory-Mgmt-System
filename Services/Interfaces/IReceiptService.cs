@@ -11,5 +11,8 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<bool> DeleteReceiptAsync(Guid id);
 
         Task<Receipt> UpdateReceiptAsync(Guid id, ReceiptUpdateDto receiptDto);
+
+        Task<IEnumerable<ReceiptDetail>> GetAllReceiptDetailsAsync();
+        Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync();
     }
 }

@@ -22,10 +22,20 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
 
                 var query = @"SELECT ""Id"", ""Name"", ""Unit"" FROM ""Items"";";
-                var items = await dbConnection.QueryAsync<Item>(query);
-                return items.ToList();
+                var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
+
+                var items = (await dbConnection.QueryAsync<Item>(query)).ToList();
+
+                foreach (var item in items)
+                {
+                    var stocks = await dbConnection.QueryAsync<Stock>(stockQuery, new { ItemId = item.Id });
+                    item.Stock = stocks.ToList(); // Assuming Item has a List<Stock> Stocks property
+                }
+
+                return items;
             }
         }
+
 
         public async Task<Item> GetByIdAsync(Guid id)
         {
