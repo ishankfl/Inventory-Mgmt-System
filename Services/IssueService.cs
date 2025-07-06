@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
 
@@ -13,11 +14,32 @@ namespace Inventory_Mgmt_System.Services
             _issueRepository = issueRepository;
         }
 
-        public async Task<Issue> CreateIssueAsync(Issue issue)
+        public async Task<Issue> CreateIssueAsync(IssueDto issueDto)
         {
+            var issue = new Issue
+            {
+                IssueId = issueDto.IssueId,
+                IssueDate = issueDto.IssueDate,
+                InvoiceNumber = issueDto.InvoiceNumber,
+                InvoiceDate = issueDto.InvoiceDate,
+                DeliveryNote = issueDto.DeliveryNote,
+                IssuedByUserId = issueDto.IssuedByUserId,
+                DepartmentId = issueDto.DepartmentId,
+                IssueDetails = issueDto.IssueDetails.Select(d => new IssueDetail
+                {
+                    Id = Guid.NewGuid(),
+                    ItemId = d.ItemId,
+                    Quantity = d.Quantity,
+                    IssueRate = d.IssueRate
+                     
+                }).ToList()
+            };
+
             ValidateIssue(issue, isNew: true);
+
             return await _issueRepository.CreateIssueAsync(issue);
         }
+
 
         public async Task<Issue> GetIssueByIdAsync(Guid id)
         {

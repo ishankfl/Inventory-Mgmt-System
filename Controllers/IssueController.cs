@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateIssue([FromBody] Issue issue)
+        public async Task<IActionResult> CreateIssue([FromBody] IssueDto issue)
         {
             try
             {

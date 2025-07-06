@@ -14,7 +14,6 @@ namespace Inventory_Mgmt_System.Repositories
         {
             _dapperDbContext = dapperDbContext;
         }
-
         public async Task<Issue> CreateIssueAsync(Issue issue)
         {
             using var connection = _dapperDbContext.CreateConnection();
@@ -24,9 +23,9 @@ namespace Inventory_Mgmt_System.Repositories
             try
             {
                 const string insertIssueQuery = @"
-                    INSERT INTO ""Issues""
-                    (""Id"", ""IssueId"", ""IssueDate"", ""InvoiceNumber"", ""InvoiceDate"", ""Customer"", ""DeliveryNote"", ""Department"", ""IssuedByUserId"")
-                    VALUES (@Id, @IssueId, @IssueDate, @InvoiceNumber, @InvoiceDate, @Customer, @DeliveryNote, @Department, @IssuedByUserId)";
+            INSERT INTO ""Issues""
+            (""Id"", ""IssueId"", ""IssueDate"", ""InvoiceNumber"", ""InvoiceDate"", ""DeliveryNote"", ""DepartmentId"", ""IssuedByUserId"")
+            VALUES (@Id, @IssueId, @IssueDate, @InvoiceNumber, @InvoiceDate, @DeliveryNote, @DepartmentId, @IssuedByUserId)";
 
                 await connection.ExecuteAsync(insertIssueQuery, new
                 {
@@ -35,7 +34,6 @@ namespace Inventory_Mgmt_System.Repositories
                     issue.IssueDate,
                     issue.InvoiceNumber,
                     issue.InvoiceDate,
-                    issue.Department,
                     issue.DeliveryNote,
                     issue.DepartmentId,
                     issue.IssuedByUserId
@@ -44,20 +42,23 @@ namespace Inventory_Mgmt_System.Repositories
                 if (issue.IssueDetails != null && issue.IssueDetails.Any())
                 {
                     const string insertDetailQuery = @"
-                        INSERT INTO ""IssueDetails""
-                        (""Id"", ""IssueId"", ""ItemId"", ""Quantity"")
-                        VALUES (@Id, @IssueId, @ItemId, @Quantity)";
+                INSERT INTO ""IssueDetails""
+                (""Id"", ""IssueId"", ""ItemId"", ""Quantity"", ""IssueRate"")
+                VALUES (@Id, @IssueId, @ItemId, @Quantity, @IssueRate)";
 
                     foreach (var detail in issue.IssueDetails)
                     {
                         detail.Id = detail.Id == Guid.Empty ? Guid.NewGuid() : detail.Id;
                         detail.IssueId = issue.Id;
+
                         await connection.ExecuteAsync(insertDetailQuery, new
                         {
                             detail.Id,
                             detail.IssueId,
                             detail.ItemId,
-                            detail.Quantity
+                            detail.Quantity,
+                            detail.IssueRate
+                            
                         }, transaction);
 
                         await AdjustStockAsync(connection, transaction, detail.ItemId, -detail.Quantity);
@@ -73,6 +74,7 @@ namespace Inventory_Mgmt_System.Repositories
                 throw;
             }
         }
+
 
         public async Task<Issue> GetIssueByIdAsync(Guid id)
         {
@@ -278,7 +280,7 @@ namespace Inventory_Mgmt_System.Repositories
         private async Task AdjustStockAsync(IDbConnection connection, IDbTransaction transaction, Guid itemId, decimal quantityDiff)
         {
             await connection.ExecuteAsync(
-                @"UPDATE ""Stocks"" 
+                @"UPDATE ""Stock"" 
                   SET ""CurrentQuantity"" = ""CurrentQuantity"" + @QuantityDiff
                   WHERE ""ItemId"" = @ItemId",
                 new { ItemId = itemId, QuantityDiff = quantityDiff },
