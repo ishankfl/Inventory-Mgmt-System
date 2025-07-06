@@ -21,7 +21,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                var query = @"SELECT ""Id"", ""Name"", ""Unit"" FROM ""Items"";";
+                var query = @"SELECT *  FROM ""Items"";";
                 var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
 
                 var items = (await dbConnection.QueryAsync<Item>(query)).ToList();
@@ -44,7 +44,13 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
 
                 var query = @"SELECT * FROM ""Items"" WHERE ""Id"" = @Id;";
+                var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId";
                 var item = await dbConnection.QueryFirstOrDefaultAsync<Item>(query, new { Id = id });
+                if (item != null)
+                {
+                    var stock = await dbConnection.QueryAsync<Stock>(stockQuery, new { ItemId = id });
+                    item.Stock = stock.ToList();
+                }
                 return item;
             }
         }
@@ -56,8 +62,8 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
 
                 const string query = @"
-                    INSERT INTO ""Items"" (""Id"", ""Name"", ""Unit"")
-                    VALUES (@Id, @Name, @Unit)
+                    INSERT INTO ""Items"" (""Id"", ""Name"", ""Unit"", ""Price"")
+                    VALUES (@Id, @Name, @Unit, @Price)
                     RETURNING ""Id"";";
 
                 if (item.Id == Guid.Empty)
