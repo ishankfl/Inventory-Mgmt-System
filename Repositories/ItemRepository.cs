@@ -43,7 +43,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                var query = @"SELECT ""Id"", ""Name"", ""Unit"" FROM ""Items"" WHERE ""Id"" = @Id;";
+                var query = @"SELECT * FROM ""Items"" WHERE ""Id"" = @Id;";
                 var item = await dbConnection.QueryFirstOrDefaultAsync<Item>(query, new { Id = id });
                 return item;
             }

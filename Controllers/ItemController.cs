@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -54,7 +55,7 @@ namespace Inventory_Mgmt_System.Controllers
 
         // POST: api/Item
         [HttpPost]
-        public async Task<IActionResult> AddItem([FromBody] Item item)
+        public async Task<IActionResult> AddItem([FromBody] ItemDto item)
         {
             try
             {

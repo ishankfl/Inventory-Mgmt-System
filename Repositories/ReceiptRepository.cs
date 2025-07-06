@@ -41,20 +41,33 @@ namespace Inventory_Mgmt_System.Repositories
                     if (receipt.ReceiptDetails != null && receipt.ReceiptDetails.Any())
                     {
                         const string insertDetailQuery = @"
-                            INSERT INTO ""ReceiptDetails"" 
-                            (""Id"", ""ReceiptId"", ""ItemId"", ""Quantity"", ""Rate"") 
-                            VALUES (@Id, @ReceiptId, @ItemId, @Quantity, @Rate)";
+        INSERT INTO ""ReceiptDetails"" 
+        (""Id"", ""ReceiptId"", ""ItemId"", ""Quantity"", ""Rate"") 
+        VALUES (@Id, @ReceiptId, @ItemId, @Quantity, @Rate)";
+
+                        const string updateItemQuery = @"
+        UPDATE ""Items"" 
+        SET ""Price"" = @Price 
+        WHERE ""Id"" = @Id";
 
                         foreach (var detail in receipt.ReceiptDetails)
                         {
                             detail.Id = Guid.NewGuid();
                             detail.ReceiptId = receipt.Id;
+
                             await connection.ExecuteAsync(insertDetailQuery, detail, transaction);
+
+                            await connection.ExecuteAsync(updateItemQuery, new
+                            {
+                                Price = detail.Rate,
+                                Id = detail.ItemId
+                            }, transaction);
 
                             // Update stock
                             await AdjustStockAsync(connection, transaction, detail.ItemId, detail.Quantity);
                         }
                     }
+
 
                     transaction.Commit();
                     return receipt;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
@@ -33,8 +34,14 @@ namespace Inventory_Mgmt_System.Services
             return item;
         }
 
-        public async Task<Item> AddItemAsync(Item item)
+        public async Task<Item> AddItemAsync(ItemDto itemDto)
         {
+            Item item = new Item
+            {
+                Name = itemDto.Name,
+                Price = itemDto.Price,
+                Unit = itemDto.Unit
+            };
             ValidateItem(item);
 
             return await _itemRepository.AddAsync(item);
