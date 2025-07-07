@@ -102,7 +102,6 @@ namespace Inventory_Mgmt_System.Repositories
             issue.IssueDetails = details;
             return issue;
         }
-
         public async Task<IEnumerable<Issue>> GetAllIssuesAsync()
         {
             using var connection = _dapperDbContext.CreateConnection();
@@ -111,28 +110,53 @@ namespace Inventory_Mgmt_System.Repositories
             const string issuesQuery = @"SELECT * FROM ""Issues"" ORDER BY ""IssueDate"" DESC";
             var issues = (await connection.QueryAsync<Issue>(issuesQuery)).ToList();
 
+            if (!issues.Any()) return issues;
+
+            var issuedUserIds = issues.Select(i => i.IssuedByUserId).Distinct().ToArray();
+            const string usersQuery = @"SELECT * FROM ""Users"" WHERE ""Id"" = ANY(@UserIds)";
+            var users = (await connection.QueryAsync<User>(usersQuery, new { UserIds = issuedUserIds }))
+                        .ToDictionary(u => u.Id, u => u);
+
+            var issueIds = issues.Select(i => i.Id).Distinct().ToArray();
+            const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = ANY(@IssueIds)";
+            var details = (await connection.QueryAsync<IssueDetail>(detailsQuery, new { IssueIds = issueIds })).ToList();
+
+            var itemIds = details.Select(d => d.ItemId).Distinct().ToArray();
+            const string itemsQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = ANY(@ItemIds)";
+            var items = (await connection.QueryAsync<Item>(itemsQuery, new { ItemIds = itemIds }))
+                        .ToDictionary(i => i.Id, i => i);
+
+            const string stocksQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = ANY(@ItemIds)";
+            var stocks = (await connection.QueryAsync<Stock>(stocksQuery, new { ItemIds = itemIds })).ToList();
+
+
             foreach (var issue in issues)
             {
-                const string userQuery = @"SELECT * FROM ""Users"" WHERE ""Id"" = @UserId";
-                issue.IssuedByUser = await connection.QueryFirstOrDefaultAsync<User>(
-                    userQuery, new { UserId = issue.IssuedByUserId });
+                if (users.TryGetValue(issue.IssuedByUserId, out var user))
+                    issue.IssuedByUser = user;
+            }
 
-                const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId";
-                var details = (await connection.QueryAsync<IssueDetail>(
-                    detailsQuery, new { IssueId = issue.Id })).ToList();
+            foreach (var issue in issues)
+            {
+                issue.IssueDetails = details
+                    .Where(d => d.IssueId == issue.Id)
+                    .ToList();
+            }
 
-                foreach (var detail in details)
+            foreach (var detail in details)
+            {
+                if (items.TryGetValue(detail.ItemId, out var item))
                 {
-                    const string itemQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = @ItemId";
-                    detail.Item = await connection.QueryFirstOrDefaultAsync<Item>(
-                        itemQuery, new { ItemId = detail.ItemId });
-                }
+                    detail.Item = item;
 
-                issue.IssueDetails = details;
+                    var itemStocks = stocks.Where(s => s.ItemId == item.Id).ToList();
+                    item.Stock = itemStocks;
+                }
             }
 
             return issues;
         }
+
 
         public async Task<bool> DeleteIssueAsync(Guid id)
         {
