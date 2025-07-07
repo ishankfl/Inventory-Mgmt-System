@@ -97,9 +97,16 @@ namespace Inventory_Mgmt_System.Repositories
                 const string itemQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = @ItemId";
                 detail.Item = await connection.QueryFirstOrDefaultAsync<Item>(
                     itemQuery, new { ItemId = detail.ItemId });
+                string stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId";
+
+               var stockDetails = await  connection.QueryAsync<Stock>(stockQuery, new { ItemId = detail.ItemId });
+                detail.Item.Stock = stockDetails.ToList();
+
             }
 
             issue.IssueDetails = details;
+
+         
             return issue;
         }
         public async Task<IEnumerable<Issue>> GetAllIssuesAsync()
