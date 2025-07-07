@@ -1,9 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
-using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.JSInterop.Infrastructure;
 using System;
 using System.Threading.Tasks;
 
@@ -11,101 +8,68 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase  // Use ControllerBase for APIs
+    public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly IActivityServices _activityServices;
-        private readonly IUserService _userService;
 
-        public ProductController(IProductService productService, IActivityServices activityServices, IUserService userService)
+        public ProductController(IProductService productService)
         {
-            this._activityServices = activityServices;
             _productService = productService;
-            _userService = userService;
         }
 
-        // GET: api/Product
         [HttpGet]
-        public async Task<IActionResult> GetAllProduct()
+        public async Task<IActionResult> GetAllProducts()
         {
             try
             {
                 var products = await _productService.GetAllProductsAsync();
                 return Ok(products);
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 return StatusCode(500, ex.Message);
             }
-          
         }
 
-        // GET: api/Product/{id}
         [HttpGet("{id}")]
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> GetProductById(string id)
         {
             try
             {
+                var productId = Guid.Parse(id);
+                var product = await _productService.GetProductByIdAsync(productId);
 
-                Guid pId = Guid.Parse(id);
-                var product = await _productService.GetProductByIdAsync(pId);
                 if (product == null)
                     return NotFound();
 
                 return Ok(product);
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 return BadRequest(ex.Message);
             }
-
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AddProductDto productDto)
+        public async Task<IActionResult> CreateProduct([FromBody] AddProductDto productDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var userIdClaim = User?.FindFirst("id")?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("Invalid token or user ID claim not found.");
+
+            var currentUserId = Guid.Parse(userIdClaim);
+
             try
             {
-                var isExist = await _productService.GetProductByNameAsync(productDto.Name);
-                if (isExist !=null)
-                {
-                    return StatusCode(409, $"Product with this name already exist:");
-
-                }
-
-                var product = new Product
-                {
-                    Id = Guid.NewGuid(),
-                    Name = productDto.Name,
-                    Description = productDto.Description,
-                    Quantity = productDto.Quantity,
-                    Price = productDto.Price,
-                    CategoryId = productDto.CategoryId,
-                    UserId = productDto.UserId,
-                    CreatedAt = DateTime.UtcNow
-                };
-             
-                var createdProduct = await _productService.CreateProductAsync(product);
-
-                var userIdClaim = User?.FindFirst("id")?.Value;
-                if (string.IsNullOrEmpty(userIdClaim))
-                {
-                    return Unauthorized("Invalid token or user ID claim not found");
-                }
-
-                var currentUserId = Guid.Parse(userIdClaim);
-             var getUserById = await _userService.GetUserById(Guid.Parse(currentUserId.ToString()));
-                var activityDto = new ActivityDTO
-                {
-                    Action = $"User with Email {getUserById.Email} added new product : {product.Name}",
-                    Status = "success",
-                    Type = ActivityType.ProductAdded,
-                    UserId = getUserById.Id
-                };
-
-                await _activityServices.AddNewActivity(activityDto);
-                return Ok( createdProduct);
+                var createdProduct = await _productService.CreateProductWithActivity(productDto, currentUserId);
+                return Ok(createdProduct);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -113,77 +77,59 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> Edit(string id, [FromBody] AddProductDto dto)
+        public async Task<IActionResult> UpdateProduct(string id, [FromBody] AddProductDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
-            Product product = new Product
-            {
-                Id = Guid.Parse(id),  // 
-                Name = dto.Name,
-                Description = dto.Description,
-                Quantity = dto.Quantity,
-                Price = dto.Price,
-                CategoryId = dto.CategoryId,
-                UserId = dto.UserId
-            };
 
-            var updatedProduct = await _productService.UpdateProductAsync(product);
-            if (updatedProduct == null)
-                return NotFound();
             var userIdClaim = User?.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
-            {
-                return Unauthorized("Invalid token or user ID claim not found");
-            }
+                return Unauthorized("Invalid token or user ID claim not found.");
 
             var currentUserId = Guid.Parse(userIdClaim);
-            var getUserById = await _userService.GetUserById(Guid.Parse(currentUserId.ToString()));
 
-            var activityDto = new ActivityDTO
+            try
             {
-                Action = $"User with Email {getUserById.Email} updated the product: {updatedProduct.Name}",
-                Status = "warning",
-                Type = ActivityType.ProductUpdated,
-                UserId = updatedProduct.UserId
-            };
-
-            await _activityServices.AddNewActivity(activityDto);
-
-            return Ok(updatedProduct);
+                var updatedProduct = await _productService.UpdateProductWithActivity(Guid.Parse(id), dto, currentUserId);
+                return Ok(updatedProduct);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-
-        [HttpDelete("{idInString}")]
-        public async Task<IActionResult> Delete(string idInString)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProduct(string id)
         {
-            Guid id = Guid.Parse(idInString);
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-                return NotFound();
-
-            await _productService.DeleteProductAsync(id);
             var userIdClaim = User?.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
-            {
-                return Unauthorized("Invalid token or user ID claim not found");
-            }
+                return Unauthorized("Invalid token or user ID claim not found.");
 
             var currentUserId = Guid.Parse(userIdClaim);
 
-            var activityDto = new ActivityDTO
+            try
             {
-                Action = $"User with Email {product.User.Email} deleted the product: {product.Name}",
-                Status = "danger",
-                Type = ActivityType.ProductDeleted,
-                UserId = product.UserId
-            };
-
-            await _activityServices.AddNewActivity(activityDto);
-            return NoContent();
+                await _productService.DeleteProductWithActivity(Guid.Parse(id), currentUserId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }
