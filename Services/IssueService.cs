@@ -54,8 +54,27 @@ namespace Inventory_Mgmt_System.Services
             return await _issueRepository.GetAllIssuesAsync();
         }
 
-        public async Task<Issue> UpdateIssueAsync(Issue issue)
+        public async Task<Issue> UpdateIssueAsync(IssueDto issueDto)
         {
+            Issue issue = new Issue
+            {
+                DeliveryNote = issueDto.DeliveryNote,
+                DepartmentId = issueDto.DepartmentId,
+                InvoiceDate = issueDto.InvoiceDate,
+                InvoiceNumber = issueDto.InvoiceNumber,
+                IssueDate = issueDto.IssueDate,
+                IssuedByUserId = issueDto.IssuedByUserId,
+                Id = Guid.Parse(issueDto.IssueId),
+
+            };
+            issue.IssueDetails = issueDto.IssueDetails.Select(d => new IssueDetail
+            {
+                Id = Guid.NewGuid(), 
+                ItemId = d.ItemId,
+                Quantity = d.Quantity,
+                IssueRate = d.IssueRate
+            }).ToList();
+
             if (issue.Id == Guid.Empty)
                 throw new ArgumentException("Invalid issue ID.");
 

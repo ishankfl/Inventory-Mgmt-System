@@ -75,13 +75,12 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateIssue(Guid id, [FromBody] Issue issue)
+        public async Task<IActionResult> UpdateIssue(Guid id, [FromBody] IssueDto issue)
         {
             try
             {
-                if (issue == null || id != issue.Id)
-                    return BadRequest("Issue is null or ID mismatch.");
-
+                issue.IssueId = id.ToString();
+            
                 var updatedIssue = await _issueService.UpdateIssueAsync(issue);
                 if (updatedIssue == null)
                     return NotFound();

@@ -8,7 +8,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<Issue> CreateIssueAsync(IssueDto issue);
         Task<Issue> GetIssueByIdAsync(Guid id);
         Task<IEnumerable<Issue>> GetAllIssuesAsync();
-        Task<Issue> UpdateIssueAsync(Issue issue);
+        Task<Issue> UpdateIssueAsync(IssueDto issue);
         Task<bool> DeleteIssueAsync(Guid id);
     }
 }

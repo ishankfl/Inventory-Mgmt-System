@@ -201,7 +201,6 @@ namespace Inventory_Mgmt_System.Repositories
                 throw;
             }
         }
-
         public async Task<Issue> UpdateIssueAsync(Issue issue)
         {
             using var connection = _dapperDbContext.CreateConnection();
@@ -210,16 +209,25 @@ namespace Inventory_Mgmt_System.Repositories
 
             try
             {
+                // Check if issue exists before updating
+                var existingIssue = await connection.ExecuteScalarAsync<int>(
+                    @"SELECT COUNT(*) FROM ""Issues"" WHERE ""Id"" = @Id",
+                    new { issue.Id }, transaction);
+
+                if (existingIssue == 0)
+                {
+                    throw new KeyNotFoundException($"Issue with Id {issue.Id} does not exist.");
+                }
+
                 const string updateIssueQuery = @"
-                    UPDATE ""Issues""
-                    SET ""IssueDate"" = @IssueDate,
-                        ""InvoiceNumber"" = @InvoiceNumber,
-                        ""InvoiceDate"" = @InvoiceDate,
-                        ""Customer"" = @Customer,
-                        ""DeliveryNote"" = @DeliveryNote,
-                        ""Department"" = @Department,
-                        ""IssuedByUserId"" = @IssuedByUserId
-                    WHERE ""Id"" = @Id";
+        UPDATE ""Issues""
+        SET ""IssueDate"" = @IssueDate,
+            ""InvoiceNumber"" = @InvoiceNumber,
+            ""InvoiceDate"" = @InvoiceDate,
+            ""DeliveryNote"" = @DeliveryNote,
+            ""DepartmentId"" = @DepartmentId,
+            ""IssuedByUserId"" = @IssuedByUserId
+        WHERE ""Id"" = @Id";
 
                 await connection.ExecuteAsync(updateIssueQuery, new
                 {
@@ -227,12 +235,12 @@ namespace Inventory_Mgmt_System.Repositories
                     issue.IssueDate,
                     issue.InvoiceNumber,
                     issue.InvoiceDate,
-                    issue.DepartmentId,
                     issue.DeliveryNote,
-                    issue.Department,
+                    issue.DepartmentId,
                     issue.IssuedByUserId
                 }, transaction);
 
+                // Fetch existing details
                 var existingDetails = (await connection.QueryAsync<IssueDetail>(
                     @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = @IssueId",
                     new { IssueId = issue.Id },
@@ -267,19 +275,28 @@ namespace Inventory_Mgmt_System.Repositories
                 foreach (var detail in detailsToUpdate)
                 {
                     var oldDetail = existingDetails.First(ed => ed.Id == detail.Id);
-                    var quantityDiff = oldDetail.Quantity - detail.Quantity;
+                    var quantityDiff = detail.Quantity - oldDetail.Quantity;
 
                     await connection.ExecuteAsync(
                         @"UPDATE ""IssueDetails""
-                          SET ""ItemId"" = @ItemId, ""Quantity"" = @Quantity
-                          WHERE ""Id"" = @Id AND ""IssueId"" = @IssueId",
-                        new { detail.Id, detail.ItemId, detail.Quantity, IssueId = issue.Id },
+                  SET ""ItemId"" = @ItemId,
+                      ""Quantity"" = @Quantity,
+                      ""IssueRate"" = @IssueRate
+                  WHERE ""Id"" = @Id AND ""IssueId"" = @IssueId",
+                        new
+                        {
+                            detail.Id,
+                            detail.ItemId,
+                            detail.Quantity,
+                            detail.IssueRate,
+                            IssueId = issue.Id
+                        },
                         transaction
                     );
 
                     if (quantityDiff != 0)
                     {
-                        await AdjustStockAsync(connection, transaction, detail.ItemId, quantityDiff);
+                        await AdjustStockAsync(connection, transaction, detail.ItemId, -quantityDiff);
                     }
                 }
 
@@ -289,8 +306,8 @@ namespace Inventory_Mgmt_System.Repositories
                     detail.IssueId = issue.Id;
 
                     await connection.ExecuteAsync(
-                        @"INSERT INTO ""IssueDetails"" (""Id"", ""IssueId"", ""ItemId"", ""Quantity"")
-                          VALUES (@Id, @IssueId, @ItemId, @Quantity)",
+                        @"INSERT INTO ""IssueDetails"" (""Id"", ""IssueId"", ""ItemId"", ""Quantity"", ""IssueRate"")
+                  VALUES (@Id, @IssueId, @ItemId, @Quantity, @IssueRate)",
                         detail,
                         transaction
                     );
@@ -307,6 +324,7 @@ namespace Inventory_Mgmt_System.Repositories
                 throw;
             }
         }
+
 
         private async Task AdjustStockAsync(IDbConnection connection, IDbTransaction transaction, Guid itemId, decimal quantityDiff)
         {
