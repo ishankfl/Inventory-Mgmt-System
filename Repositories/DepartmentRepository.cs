@@ -1,63 +1,74 @@
-﻿using Inventory_Mgmt_System.Data;
+﻿using Dapper;
+using Inventory_Mgmt_System.Data;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace Inventory_Mgmt_System.Repositories
 {
-    public class DepartmentRepository:IDepartmentRepository
+    public class DepartmentRepository : IDepartmentRepository
     {
-        private readonly AppDbContext _context;
+        private readonly DapperDbContext _dapperDbContext;
 
-        public DepartmentRepository(AppDbContext context)
+        public DepartmentRepository(DapperDbContext dapperDbContext)
         {
-            _context = context;
+            _dapperDbContext = dapperDbContext;
         }
+
         public async Task<List<Department>> GetAllAsync()
         {
-            return await _context.Departments.ToListAsync();
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"SELECT * FROM ""Departments""";
+            var departments = await connection.QueryAsync<Department>(query);
+            return departments.ToList();
         }
 
         public async Task<Department?> GetByIdAsync(Guid id)
         {
-            return await _context.Departments.FindAsync(id);
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"SELECT * FROM ""Departments"" WHERE ""Id"" = @Id";
+            return await connection.QueryFirstOrDefaultAsync<Department>(query, new { Id = id });
         }
-
 
         public async Task<Department?> GetByNameAsync(string name)
         {
-            var dept = await _context.Departments.Where(dept => dept.Name == name).FirstOrDefaultAsync();
-            return dept;
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"SELECT * FROM ""Departments"" WHERE ""Name"" = @Name";
+            return await connection.QueryFirstOrDefaultAsync<Department>(query, new { Name = name });
         }
+
         public async Task<Department> AddAsync(Department department)
         {
-            _context.Departments.Add(department);
-            await _context.SaveChangesAsync();
+            using var connection = _dapperDbContext.CreateConnection();
+            department.Id = Guid.NewGuid();
+            const string query = @"
+                INSERT INTO ""Departments"" (""Id"", ""Name"", ""Description"")
+                VALUES (@Id, @Name, @Description)";
+            await connection.ExecuteAsync(query, department);
             return department;
         }
 
         public async Task UpdateAsync(Department department)
         {
-            _context.Departments.Update(department);
-            await _context.SaveChangesAsync();
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"
+                UPDATE ""Departments""
+                SET ""Name"" = @Name, ""Description"" = @Description
+                WHERE ""Id"" = @Id";
+            await connection.ExecuteAsync(query, department);
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var dept = await _context.Departments.FindAsync(id);
-            if (dept != null)
-            {
-                _context.Departments.Remove(dept);
-                await _context.SaveChangesAsync();
-            }
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"DELETE FROM ""Departments"" WHERE ""Id"" = @Id";
+            await connection.ExecuteAsync(query, new { Id = id });
         }
 
         public async Task<int> TotalNumberOfDepartments()
         {
-            var count = await _context.Departments.CountAsync();
-            return count;
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"SELECT COUNT(*) FROM ""Departments""";
+            return await connection.ExecuteScalarAsync<int>(query);
         }
-
-
     }
 }
