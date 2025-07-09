@@ -42,7 +42,7 @@ namespace Inventory_Mgmt_System.Services
         public async Task<Dictionary<string, int>> GetCount()
         {
             int userCount = await _userRepository.TotalNumberOfUser();
-            int productCount = await _itemRepository.GetTotalCountOfItems();
+            int productCount = await _itemRepository. GetTotalCountOfItems();
             int categoryCount = await _categoryRepository.TotalNumberOfCategory();
             int departmentCount = await _departmentRepository.TotalNumberOfDepartments();
 
