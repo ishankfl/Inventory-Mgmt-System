@@ -55,6 +55,20 @@ namespace Inventory_Mgmt_System.Repositories
             }
         }
 
+        public async Task<int> GetTotalCountOfItems()
+        {
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+                var query = @"SELECT  COUNT(*) FROM ""Items""";
+                //SELECT distinct Count(*) FROM "Items"  "Name";
+                var count = await dbConnection.QuerySingleAsync<int>(query);
+                return count;
+
+            }
+            return 0;
+        }
+
         public async Task<Item> AddAsync(Item item)
         {
             using (var dbConnection = _dapperDbContext.CreateConnection())

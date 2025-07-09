@@ -87,5 +87,10 @@ namespace Inventory_Mgmt_System.Services
             if (item.Unit.Length > 50)
                 throw new ArgumentException("Item Unit cannot exceed 50 characters.");
         }
+
+        public async Task<int> GetTotalCountOfItems()
+        {
+            return await _itemRepository.GetTotalCountOfItems();
+        }
     }
 }

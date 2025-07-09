@@ -11,10 +11,12 @@ namespace Inventory_Mgmt_System.Services
         private readonly IDepartmentRepository _departmentRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IItemRepository _itemRepository;
         public DashboardService(IProductRepository productRepository, IIssueProductRepository issueRepository,
             IDepartmentRepository departmentRepository,
             ICategoryRepository categoryRepository,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IItemRepository itemRepository
 
             )
         {
@@ -23,6 +25,7 @@ namespace Inventory_Mgmt_System.Services
             _departmentRepository = departmentRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
+            _itemRepository = itemRepository;
         }
         public async Task<List<Product>> GetTopTenQtyProducts()
         {
@@ -39,7 +42,7 @@ namespace Inventory_Mgmt_System.Services
         public async Task<Dictionary<string, int>> GetCount()
         {
             int userCount = await _userRepository.TotalNumberOfUser();
-            int productCount = await _productRepository.TotalNumberOfProduct();
+            int productCount = await _itemRepository.GetTotalCountOfItems();
             int categoryCount = await _categoryRepository.TotalNumberOfCategory();
             int departmentCount = await _departmentRepository.TotalNumberOfDepartments();
 

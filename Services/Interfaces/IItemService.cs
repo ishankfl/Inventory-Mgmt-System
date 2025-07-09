@@ -13,5 +13,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<Item> AddItemAsync(ItemDto item);
         Task<Item> UpdateItemAsync(Item item);
         Task<Item> DeleteItemAsync(Guid id);
+
+        Task<int> GetTotalCountOfItems();
     }
 }

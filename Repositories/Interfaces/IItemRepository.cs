@@ -13,5 +13,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Item> UpdateAsync(Item item);
         Task<Item> DeleteAsync(Guid id);
         Task<bool> Exists(Guid id);
+
+        Task<int> GetTotalCountOfItems();
     }
 }
