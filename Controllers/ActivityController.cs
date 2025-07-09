@@ -40,16 +40,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             try
             {
-                var activity = new Activity
-                {
-                    Id = new Guid(),
-                    Action = activityDto.Action,
-                    Status = activityDto.Status,
-                    /*Timestamp  =activityDto.Timestamp,*/
-                    Type = activityDto.Type,
-                    UserId = activityDto.UserId
-
-                };
+               
 
                 var activityAdded = await _service.AddNewActivity(activityDto);
                 return StatusCode(201,activityAdded);
