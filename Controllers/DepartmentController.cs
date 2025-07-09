@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Inventory_Mgmt_System.Dtos;
-using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 
@@ -16,8 +15,8 @@ namespace Inventory_Mgmt_System.Controllers
         {
             _departmentService = departmentService;
         }
-        [Authorize]
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddDepartment([FromBody] DepartmentDto department)
         {
@@ -36,39 +35,32 @@ namespace Inventory_Mgmt_System.Controllers
         public async Task<IActionResult> GetDepartmentById(string id)
         {
             var result = await _departmentService.GetDepartmentByIdAsync(Guid.Parse(id));
+            if (result == null)
+                return NotFound(new { message = "Department not found" });
+
             return Ok(result);
         }
 
         [Authorize]
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteDepartmentById(string id)
         {
-            var result = await _departmentService.DeleteDepartmentAsync(Guid.Parse(id));
-            return Ok(result);
-        }
-        [Authorize]
+            var deleted = await _departmentService.DeleteDepartmentAsync(Guid.Parse(id));
+            if (!deleted)
+                return NotFound(new { message = "Department not found" });
 
+            return Ok(new { success = true });
+        }
+
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateDepartmentById(string id, DepartmentDto dto)
         {
-            var departmentId = Guid.Parse(id);
+            var updated = await _departmentService.UpdateDepartmentAsync(Guid.Parse(id), dto);
+            if (updated == null)
+                return BadRequest(new { message = "Update failed. Department not found or name already exists." });
 
-            var existingDepartment = await _departmentService.GetByIdAsync(departmentId);
-            if (existingDepartment == null)
-            {
-                return NotFound(new { message = "Department not found" });
-            }
-
-            var duplicateNameDepartment = await _departmentService.GetByNameAsync(dto.Name);
-            if (duplicateNameDepartment != null && duplicateNameDepartment.Id != departmentId)
-            {
-                return BadRequest(new { message = "Department name already exists" });
-            }
-
-            var updated = await _departmentService.UpdateDepartmentAsync(departmentId, dto);
             return Ok(new { success = true, data = updated });
         }
-
     }
 }

@@ -10,8 +10,6 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
         [ApiController]
-/*        [Authorize]
-*/
     public class ActivityController:ControllerBase
 
 
