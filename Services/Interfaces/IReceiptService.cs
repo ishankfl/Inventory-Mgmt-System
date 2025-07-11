@@ -14,5 +14,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
 
         Task<IEnumerable<ReceiptDetail>> GetAllReceiptDetailsAsync();
         Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync();
+
+        Task<bool> IsItemUsedInAnyReceiptAsync(Guid id);
     }
 }

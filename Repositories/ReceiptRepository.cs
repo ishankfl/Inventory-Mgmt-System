@@ -415,5 +415,14 @@ namespace Inventory_Mgmt_System.Repositories
                 return await connection.QueryAsync<ReceiptDetail>(query);
             }
         }
+
+        public async Task<bool> IsItemUsedInAnyReceiptAsync(Guid itemId)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+            const string query = @"SELECT 1 FROM ""ReceiptDetails"" WHERE ""ItemId"" = @ItemId LIMIT 1";
+            var result = await connection.ExecuteScalarAsync<int?>(query, new { ItemId = itemId });
+            return result.HasValue;
+        }
+
     }
 }

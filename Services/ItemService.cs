@@ -11,10 +11,13 @@ namespace Inventory_Mgmt_System.Services
     public class ItemService : IItemService
     {
         private readonly IItemRepository _itemRepository;
+        private readonly IReceiptService  _receiptService;
 
-        public ItemService(IItemRepository itemRepository)
+
+        public ItemService(IItemRepository itemRepository, IReceiptService receiptService)
         {
             _itemRepository = itemRepository;
+            _receiptService = receiptService;
         }
 
         public async Task<List<Item>> GetAllItemsAsync()
@@ -66,16 +69,19 @@ namespace Inventory_Mgmt_System.Services
 
             return await _itemRepository.UpdateAsync(item);
         }
-
         public async Task<Item> DeleteItemAsync(Guid id)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Item ID cannot be empty.");
 
+            var isUsed = await _receiptService.IsItemUsedInAnyReceiptAsync(id);
+            if (isUsed)
+                throw new InvalidOperationException("Cannot delete this item because it is used in one or more receipts.");
+
             return await _itemRepository.DeleteAsync(id);
         }
 
-       
+
         private void ValidateItem(Item item)
         {
             if (item == null)

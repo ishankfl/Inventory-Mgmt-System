@@ -213,6 +213,11 @@ namespace Inventory_Mgmt_System.Services
             return await _receiptRepository.GetSimplifiedReceiptDetailsAsync();
         }
 
+        public async Task<bool> IsItemUsedInAnyReceiptAsync(Guid id)
+        {
+            return await _receiptRepository.IsItemUsedInAnyReceiptAsync(id);
+        }
+
     } 
 
     }

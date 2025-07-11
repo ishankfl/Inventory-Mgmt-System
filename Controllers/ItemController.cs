@@ -69,7 +69,7 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         // PUT: api/Item/{id}
-        [HttpPut("{id}")]
+        [HttpPut("{idInString}")]
         public async Task<IActionResult> UpdateItem(string idInString, [FromBody] ItemDto item)
         {
             Guid id = Guid.Parse(idInString);
@@ -90,8 +90,6 @@ namespace Inventory_Mgmt_System.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-        // DELETE: api/Item/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItem(Guid id)
         {
@@ -108,6 +106,11 @@ namespace Inventory_Mgmt_System.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message }); // 409 Conflict
+            }
         }
+
     }
 }
