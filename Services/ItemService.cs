@@ -47,11 +47,16 @@ namespace Inventory_Mgmt_System.Services
             return await _itemRepository.AddAsync(item);
         }
 
-        public async Task<Item> UpdateItemAsync(Item item)
+        public async Task<Item> UpdateItemAsync(Guid Id, ItemDto itemDto)
         {
-            if (item.Id == Guid.Empty)
+            if (Id == Guid.Empty)
                 throw new ArgumentException("Item ID cannot be empty for update.");
-
+            Item item = new Item
+            {
+                Id = Id,
+                Price = itemDto.Price,
+                Unit = itemDto.Unit,
+            };
             ValidateItem(item);
 
             var existingItem = await _itemRepository.GetByIdAsync(item.Id);

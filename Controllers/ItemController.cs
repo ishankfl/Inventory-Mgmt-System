@@ -70,14 +70,14 @@ namespace Inventory_Mgmt_System.Controllers
 
         // PUT: api/Item/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] Item item)
+        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] ItemDto item)
         {
             try
             {
-                if (id != item.Id)
+                if (id == Guid.Empty)
                     return BadRequest(new { message = "ID in URL and body do not match." });
 
-                var updatedItem = await _itemService.UpdateItemAsync(item);
+                var updatedItem = await _itemService.UpdateItemAsync(id, item);
                 return Ok(updatedItem);
             }
             catch (KeyNotFoundException ex)
