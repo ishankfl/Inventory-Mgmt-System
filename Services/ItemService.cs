@@ -56,6 +56,7 @@ namespace Inventory_Mgmt_System.Services
                 Id = Id,
                 Price = itemDto.Price,
                 Unit = itemDto.Unit,
+                Name = itemDto.Name
             };
             ValidateItem(item);
 

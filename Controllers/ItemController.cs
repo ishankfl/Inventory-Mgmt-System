@@ -70,8 +70,9 @@ namespace Inventory_Mgmt_System.Controllers
 
         // PUT: api/Item/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] ItemDto item)
+        public async Task<IActionResult> UpdateItem(string idInString, [FromBody] ItemDto item)
         {
+            Guid id = Guid.Parse(idInString);
             try
             {
                 if (id == Guid.Empty)
