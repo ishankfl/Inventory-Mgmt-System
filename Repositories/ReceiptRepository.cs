@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Inventory_Mgmt_System.Data;
+using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using System.Data;
@@ -423,6 +424,70 @@ namespace Inventory_Mgmt_System.Repositories
             var result = await connection.ExecuteScalarAsync<int?>(query, new { ItemId = itemId });
             return result.HasValue;
         }
+
+
+        public async Task<List<TopItemDto>> GetTop10Item()
+        {
+            try
+            {
+                using var connection = _dapperDbContext.CreateConnection();
+
+                // Step 1: Get top 10 items by receipt quantity
+                const string topItemsQuery = @"
+            SELECT 
+                i.*
+            FROM ""Items"" i
+            JOIN (
+                SELECT 
+                    ""ItemId"", 
+                    SUM(""Quantity"") AS TotalQuantity
+                FROM ""ReceiptDetails""
+                GROUP BY ""ItemId""
+                ORDER BY TotalQuantity DESC
+                LIMIT 10
+            ) rd ON i.""Id"" = rd.""ItemId""
+            ORDER BY rd.TotalQuantity DESC";
+
+                var topItems = (await connection.QueryAsync<Item>(topItemsQuery)).ToList();
+
+                if (!topItems.Any())
+                    return new List<TopItemDto>();
+
+                // Step 2: Get all stock records for those items
+                var itemIds = topItems.Select(i => i.Id).ToArray();
+
+                const string stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = ANY(@ItemIds)";
+                var allStocks = (await connection.QueryAsync<Stock>(stockQuery, new { ItemIds = itemIds })).ToList();
+
+                // Step 3: Group stock by ItemId
+                var stockLookup = allStocks
+                    .GroupBy(s => s.ItemId)
+                    .ToDictionary(g => g.Key, g => g.Sum(s => s.CurrentQuantity));
+
+                // Step 4: Build DTO list with total stock quantity
+                var result = topItems
+                    .Select(item => new TopItemDto
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        Unit = item.Unit,
+                        Price = item.Price,
+                        TotalStockQuantity = stockLookup.TryGetValue(item.Id, out var totalQty) ? int.Parse(totalQty.ToString() ): 0
+                    })
+                    .OrderByDescending(dto => dto.TotalStockQuantity)
+                    .ToList();
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[ERROR] {e.Message}");
+                throw;
+            }
+        }
+
+
+
 
     }
 }

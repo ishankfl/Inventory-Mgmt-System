@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 
 namespace Inventory_Mgmt_System.Repositories.Interfaces
 {
@@ -13,6 +14,10 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<IEnumerable<ReceiptDetail>> GetAllReceiptDetailsAsync();
         Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync();
         Task<bool> IsItemUsedInAnyReceiptAsync(Guid itemId);
+
+       // Task<List<Item>> GetTop10Item();
+
+        Task<List<TopItemDto>> GetTop10Item();
 
     }
 

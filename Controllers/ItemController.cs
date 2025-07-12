@@ -109,7 +109,7 @@ namespace Inventory_Mgmt_System.Controllers
             catch (InvalidOperationException ex)
             {
                 return Conflict(new { message = ex.Message }); // 409 Conflict
-            }
+            } 
         }
 
     }

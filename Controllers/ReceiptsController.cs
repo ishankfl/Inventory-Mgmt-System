@@ -121,5 +121,20 @@ namespace Inventory_Mgmt_System.Controllers
             var details = await _receiptService.GetSimplifiedReceiptDetailsAsync();
             return Ok(details);
         }
+
+        [HttpGet("top10qty")]
+        public async Task<IActionResult> GetTop10Item()
+        {
+            try
+            {
+                var details = await _receiptService.GetTop10Item();
+                return Ok(details);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
     }
 }

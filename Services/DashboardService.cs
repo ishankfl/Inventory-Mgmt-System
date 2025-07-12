@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using Inventory_Mgmt_System.Services.Interfaces;
 
@@ -12,11 +13,13 @@ namespace Inventory_Mgmt_System.Services
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserRepository _userRepository;
         private readonly IItemRepository _itemRepository;
+        private readonly IReceiptService _receiptService;
         public DashboardService(IProductRepository productRepository, IIssueProductRepository issueRepository,
             IDepartmentRepository departmentRepository,
             ICategoryRepository categoryRepository,
             IUserRepository userRepository,
-            IItemRepository itemRepository
+            IItemRepository itemRepository,
+            IReceiptService receiptService
 
             )
         {
@@ -26,10 +29,11 @@ namespace Inventory_Mgmt_System.Services
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
             _itemRepository = itemRepository;
+            _receiptService = receiptService;
         }
-        public async Task<List<Product>> GetTopTenQtyProducts()
+        public async Task<List<TopItemDto>> GetTopTenQtyProducts()
         {
-            var top10Proudcts = await _productRepository.GetTopTenProductsByQty();
+            var top10Proudcts = await _receiptService.GetTop10Item();
             return top10Proudcts;
         }
 
@@ -38,6 +42,7 @@ namespace Inventory_Mgmt_System.Services
             var topIssuedProducts = await _issueRepository.GetTopIssuedProductsAsync();
             return topIssuedProducts;
         }
+
 
         public async Task<Dictionary<string, int>> GetCount()
         {

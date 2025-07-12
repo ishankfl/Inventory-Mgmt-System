@@ -218,6 +218,11 @@ namespace Inventory_Mgmt_System.Services
             return await _receiptRepository.IsItemUsedInAnyReceiptAsync(id);
         }
 
+        public async Task<List<TopItemDto>> GetTop10Item()
+        {
+            return await _receiptRepository.GetTop10Item();
+        }
+
     } 
 
     }
