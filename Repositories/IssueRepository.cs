@@ -336,5 +336,30 @@ namespace Inventory_Mgmt_System.Repositories
                 transaction
             );
         }
+
+        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+
+            const string query = @"
+        SELECT 
+            i.*,
+            SUM(d.""Quantity"") AS TotalIssuedQuantity
+        FROM ""IssueDetails"" d
+        INNER JOIN ""Items"" i ON i.""Id"" = d.""ItemId""
+        GROUP BY i.""Id""
+        ORDER BY TotalIssuedQuantity DESC
+        LIMIT 10";
+
+            var result = await connection.QueryAsync<Item, decimal, (Item, decimal)>(
+                query,
+                (item, totalQty) => (item, totalQty),
+                splitOn: "TotalIssuedQuantity"
+            );
+
+            return result;
+        }
+
     }
 }

@@ -10,5 +10,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<IEnumerable<Issue>> GetAllIssuesAsync();
         Task<Issue> UpdateIssueAsync(IssueDto issue);
         Task<bool> DeleteIssueAsync(Guid id);
+
+        Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
     }
 }

@@ -1,11 +1,14 @@
 ﻿using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
+
     public class VendorController : ControllerBase
     {
         private readonly IVendorService _vendorService;

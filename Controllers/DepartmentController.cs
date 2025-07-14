@@ -7,6 +7,8 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class DepartmentController : ControllerBase
     {
         private readonly IDepartmentService _departmentService;

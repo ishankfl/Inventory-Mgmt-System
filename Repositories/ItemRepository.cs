@@ -14,27 +14,52 @@ namespace Inventory_Mgmt_System.Repositories
         {
             _dapperDbContext = dapperDbContext;
         }
+        /*
+                public async Task<List<Item>> GetAllAsync()
+                {
+                    using (var dbConnection = _dapperDbContext.CreateConnection())
+                    {
+                        dbConnection.Open();
 
-        public async Task<List<Item>> GetAllAsync()
+                        var query = @"SELECT *  FROM ""Items"";";
+                        var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
+
+                        var items = (await dbConnection.QueryAsync<Item>(query)).ToList();
+
+                        foreach (var item in items)
+                        {
+                            var stocks = await dbConnection.QueryAsync<Stock>(stockQuery, new { ItemId = item.Id });
+                            item.Stock = stocks.ToList(); // Assuming Item has a List<Stock> Stocks property
+                        }
+
+                        return items;
+                    }
+                }*/
+        public async Task<(List<Item> Items, int TotalCount)> GetAllPaginatedAsync(int page, int limit)
         {
             using (var dbConnection = _dapperDbContext.CreateConnection())
             {
                 dbConnection.Open();
 
-                var query = @"SELECT *  FROM ""Items"";";
+                int offset = (page - 1) * limit;
+
+                var query = @"SELECT * FROM ""Items"" ORDER BY ""Id"" OFFSET @Offset LIMIT @Limit;";
+                var countQuery = @"SELECT COUNT(*) FROM ""Items"";";
                 var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
 
-                var items = (await dbConnection.QueryAsync<Item>(query)).ToList();
+                var items = (await dbConnection.QueryAsync<Item>(query, new { Offset = offset, Limit = limit })).ToList();
+                var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery);
 
                 foreach (var item in items)
                 {
                     var stocks = await dbConnection.QueryAsync<Stock>(stockQuery, new { ItemId = item.Id });
-                    item.Stock = stocks.ToList(); // Assuming Item has a List<Stock> Stocks property
+                    item.Stock = stocks.ToList();
                 }
 
-                return items;
+                return (items, totalCount);
             }
         }
+
 
 
         public async Task<Item> GetByIdAsync(Guid id)

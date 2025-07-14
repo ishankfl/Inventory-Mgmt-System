@@ -14,12 +14,14 @@ namespace Inventory_Mgmt_System.Services
         private readonly IUserRepository _userRepository;
         private readonly IItemRepository _itemRepository;
         private readonly IReceiptService _receiptService;
+        private readonly IIssueService _issueService;
         public DashboardService(IProductRepository productRepository, IIssueProductRepository issueRepository,
             IDepartmentRepository departmentRepository,
             ICategoryRepository categoryRepository,
             IUserRepository userRepository,
             IItemRepository itemRepository,
-            IReceiptService receiptService
+            IReceiptService receiptService,
+            IIssueService issueService
 
             )
         {
@@ -30,6 +32,7 @@ namespace Inventory_Mgmt_System.Services
             _userRepository = userRepository;
             _itemRepository = itemRepository;
             _receiptService = receiptService;
+            _issueService = issueService;
         }
         public async Task<List<TopItemDto>> GetTopTenQtyProducts()
         {
@@ -37,9 +40,9 @@ namespace Inventory_Mgmt_System.Services
             return top10Proudcts;
         }
 
-        public async Task<List<Product>> GetTopIssuedProductsAsync()
+        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
         {
-            var topIssuedProducts = await _issueRepository.GetTopIssuedProductsAsync();
+            var topIssuedProducts = await _issueService.GetTopIssuedItemsAsync();
             return topIssuedProducts;
         }
 

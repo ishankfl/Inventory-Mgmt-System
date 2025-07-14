@@ -20,10 +20,15 @@ namespace Inventory_Mgmt_System.Services
             _receiptService = receiptService;
         }
 
-        public async Task<List<Item>> GetAllItemsAsync()
+        /* public async Task<List<Item>> GetAllItemsAsync()
+         {
+             return await _itemRepository.GetAllAsync();
+         }*/
+        public async Task<(List<Item> Items, int TotalCount)> GetAllItemsPaginatedAsync(int page, int limit)
         {
-            return await _itemRepository.GetAllAsync();
+            return await _itemRepository.GetAllPaginatedAsync(page, limit);
         }
+
 
         public async Task<Item> GetItemByIdAsync(Guid id)
         {

@@ -2,6 +2,7 @@
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -9,6 +10,8 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
+
     public class IssueController : ControllerBase
     {
         private readonly IIssueService _issueService;

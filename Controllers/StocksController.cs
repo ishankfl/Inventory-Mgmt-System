@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +11,8 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class StocksController : ControllerBase
     {
         private readonly IStockService _stockService;

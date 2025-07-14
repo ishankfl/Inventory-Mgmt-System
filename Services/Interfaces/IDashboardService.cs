@@ -8,9 +8,9 @@ namespace Inventory_Mgmt_System.Services.Interfaces
       //  Task<List<Product>> GetTopTenQtyProducts();
 //        Task<List<Product>> GetTopIssuedProductsAsync();
         Task<Dictionary<string,int>> GetCount();
-       // Task<List<TopItemDto>> GetTopIssuedProductsAsync();
+        // Task<List<TopItemDto>> GetTopIssuedProductsAsync();
 
-        Task<List<Product>> GetTopIssuedProductsAsync();
+        Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
         Task<List<TopItemDto>> GetTopTenQtyProducts();
 
     }

@@ -12,6 +12,8 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
     [Route("api/issues")]
+    [Authorize]
+
     /*  [Authorize(Roles = "Admin,Staff")] */
     public class IssueProductController : ControllerBase
     {

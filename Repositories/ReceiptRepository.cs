@@ -337,36 +337,30 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 connection.Open();
 
-                // Get all receipt details
                 const string detailsQuery = @"SELECT * FROM ""ReceiptDetails""";
                 var details = (await connection.QueryAsync<ReceiptDetail>(detailsQuery)).ToList();
 
-                // Get all related receipts
                 var receiptIds = details.Select(d => d.ReceiptId).Distinct().ToList();
                 const string receiptsQuery = @"SELECT * FROM ""Receipts"" WHERE ""Id"" IN @ReceiptIds";
                 var receipts = (await connection.QueryAsync<Receipt>(
                     receiptsQuery, new { ReceiptIds = receiptIds })).ToDictionary(r => r.Id);
 
-                // Get all related vendors
                 var vendorIds = receipts.Values.Select(r => r.VendorId).Distinct().ToList();
                 const string vendorsQuery = @"SELECT * FROM ""Vendor"" WHERE ""Id"" IN @VendorIds";
                 var vendors = (await connection.QueryAsync<Vendor>(
                     vendorsQuery, new { VendorIds = vendorIds })).ToDictionary(v => v.Id);
 
-                // Get all related items
                 var itemIds = details.Select(d => d.ItemId).Distinct().ToList();
                 const string itemsQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" IN @ItemIds";
                 var items = (await connection.QueryAsync<Item>(
                     itemsQuery, new { ItemIds = itemIds })).ToDictionary(i => i.Id);
 
-                // Get all related stocks
                 const string stocksQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" IN @ItemIds";
                 var allStocks = (await connection.QueryAsync<Stock>(
                     stocksQuery, new { ItemIds = itemIds })).ToList();
                 var stocksByItem = allStocks.GroupBy(s => s.ItemId)
                     .ToDictionary(g => g.Key, g => g.AsEnumerable());
 
-                // Build the object graph
                 foreach (var detail in details)
                 {
                     if (receipts.TryGetValue(detail.ReceiptId, out var receipt))

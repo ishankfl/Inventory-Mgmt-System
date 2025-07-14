@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;

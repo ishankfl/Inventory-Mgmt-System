@@ -12,6 +12,7 @@ namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -29,54 +30,23 @@ namespace Inventory_Mgmt_System.Controllers
         {
             try
             {
-                PasswordHasher.CreatePasswordHash(request.Password, out byte[] hash, out byte[] salt);
+                var userIdClaim = User?.FindFirst("id")?.Value;
+                if (string.IsNullOrEmpty(userIdClaim))
+                    return Unauthorized("Invalid token or user ID claim not found");
 
-                var isExit = await _userService.GetUserByEmailAsync(request.Email);
-                if (isExit != null)
-                {
-                    return StatusCode(409, new { error = "User with this email already exists" });
-                }
+                var currentUserId = Guid.Parse(userIdClaim);
 
-                var user = new User
-                {
-                    Id = Guid.NewGuid(),
-                    FullName = request.FullName,
-                    Email = request.Email,
-                    PasswordHash = Convert.ToBase64String(hash),
-                    PasswordSalt = Convert.ToBase64String(salt),
-                    Role = request.Role == 0 ? UserRole.Admin : UserRole.Staff,
-                };
+                var (createdUser, errorMessage) = await _userService.RegisterUserAsync(request, currentUserId);
 
-                var createdUser = await _userService.AddUserService(user);
-                if (createdUser != null)
-                {
-                    var userIdClaim = User?.FindFirst("id")?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim))
-                    {
-                        return Unauthorized("Invalid token or user ID claim not found");
-                    }
+                if (errorMessage != null)
+                    return Conflict(new { error = errorMessage });
 
-                    var currentUserId = Guid.Parse(userIdClaim);
-
-                    var activityDto = new ActivityDTO
-                    {
-                        Action = $"New user added with name {user.FullName}",
-                        Status = "success",
-                        Type = ActivityType.UserAdded,
-                        UserId = currentUserId
-                    };
-
-                    await _activityServices.AddNewActivity(activityDto);
-
-                    return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
-                }
+                return CreatedAtAction(nameof(GetUser), new { id = createdUser!.Id }, createdUser);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
-
-            return BadRequest("Something went wrong");
         }
 
         [HttpPost("Login")]
@@ -84,40 +54,20 @@ namespace Inventory_Mgmt_System.Controllers
         {
             try
             {
-                var user = await _userService.GetUserByEmailAsync(request.Email);
-                if (user == null)
-                {
-                    return Unauthorized("Invalid email or password.");
-                }
+                var (token, errorMessage) = await _userService.LoginUserAsync(request);
 
-                bool isPasswordValid = PasswordHasher.VerifyPasswordHash(request.password, user.PasswordHash, user.PasswordSalt);
-                if (!isPasswordValid)
-                {
-                    return Unauthorized("Invalid email or password.");
-                }
+                if (errorMessage != null)
+                    return Unauthorized(errorMessage);
 
-                string token = JwtUtils.GenerateJwtToken(user);
-
-                var activityDto = new ActivityDTO
-                {
-                    Action = $"User {user.Email} logged in successfully",
-                    Status = "warning",
-                    Type = ActivityType.UserLoggedIn,
-                    UserId = user.Id
-                };
-
-                await _activityServices.AddNewActivity(activityDto);
-
-                // 5. Return token
                 return Ok(new Dictionary<string, string?>
-            {
-                { "token", token }
-            });
+        {
+            { "token", token }
+        });
             }
-            catch (Exception ex) { 
+            catch (Exception ex)
+            {
                 return StatusCode(500, ex.Message);
-               }
-           
+            }
         }
 
         [HttpGet("{id}")]
@@ -127,6 +77,7 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<List<User>>> GetAllUserss()
         {
             var userList = await _userService.GetAllUser();
@@ -137,31 +88,17 @@ namespace Inventory_Mgmt_System.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<User>> DeleteUserById(string id)
         {
-            var user = await _userService.DeleteUserById(Guid.Parse(id));
-            if (user == null)
-            {
-                return NotFound($"No user found with ID {id}");
-            }
-
             var userIdClaim = User?.FindFirst("id")?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
-            {
                 return Unauthorized("Invalid token or user ID claim not found");
-            }
 
             var currentUserId = Guid.Parse(userIdClaim);
+            var deletedUser = await _userService.DeleteUserById(Guid.Parse(id), currentUserId);
 
-            var activityDto = new ActivityDTO
-            {
-                Action = $"User with Email {user.Email} was deleted",
-                Status = "danger",
-                Type = ActivityType.UserDeleted,
-                UserId = currentUserId
-            };
+            if (deletedUser == null)
+                return NotFound($"No user found with ID {id}");
 
-            await _activityServices.AddNewActivity(activityDto);
-
-            return Ok(user); 
+            return Ok(deletedUser);
         }
     }
 }

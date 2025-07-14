@@ -1,12 +1,14 @@
 ﻿using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DashboardController : ControllerBase
     {
         private readonly IDashboardService _dashboardService;
@@ -30,17 +32,18 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
         [HttpGet("GetTopIssuedProducts")]
-        public async Task<IActionResult> GetTopIssuedProductsAsync()
+        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
         {
             try
             {
-                var topProducts = await _dashboardService.GetTopIssuedProductsAsync();
-                return   StatusCode(200, topProducts);
+                var topProducts = await _dashboardService.GetTopIssuedItemsAsync();
+                Console.WriteLine(topProducts);
+                return    topProducts;
                   //  topProducts;
             }
             catch (Exception ex) { 
                 Console.WriteLine(ex);
-                return StatusCode(500,new {success="False",message = $"Something went wrong {ex}" });
+                throw;
             }
         }
 

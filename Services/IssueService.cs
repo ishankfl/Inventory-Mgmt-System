@@ -119,5 +119,10 @@ namespace Inventory_Mgmt_System.Services
             if (!isNew && issue.Id == Guid.Empty)
                 throw new ArgumentException("Issue ID is required for update.");
         }
+
+        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+        {
+            return await _issueRepository.GetTopIssuedItemsAsync();
+        }
     }
 }
