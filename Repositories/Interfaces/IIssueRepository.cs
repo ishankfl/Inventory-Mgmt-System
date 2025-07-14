@@ -11,5 +11,6 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<bool> DeleteIssueAsync(Guid id);
 
         Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
+        Task<(List<Issue> Issues, int TotalCount)> GetAllPaginatedIssuesAsync(int page, int limit);
     }
 }

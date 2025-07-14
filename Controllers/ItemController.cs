@@ -21,43 +21,43 @@ namespace Inventory_Mgmt_System.Controllers
             _itemService = itemService;
         }
 
-        /*     // GET: api/Item
-             [HttpGet]
-             public async Task<IActionResult> GetAllItems()
-             {
-                 try
-                 {
-
-                 var items = await _itemService.GetAllItemsAsync();
-                 return Ok(items);
-                 }
-                 catch(Exception ex) {
-
-                     return BadRequest(ex.ToString());
-                 }
-             }*/
+   /*     // GET: api/Item
         [HttpGet]
-        public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuery] int limit = 10)
+        public async Task<IActionResult> GetAllItems()
         {
             try
             {
-                var (items, totalCount) = await _itemService.GetAllItemsPaginatedAsync(page, limit);
 
-                var response = new
-                {
-                    data = items,
-                    total = totalCount,
-                    page,
-                    limit
-                };
+            var items = await _itemService.GetAllItemsAsync();
+            return Ok(items);
+            }
+            catch(Exception ex) {
+            
+                return BadRequest(ex.ToString());
+            }
+        }*/
+   [HttpGet]
+public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuery] int limit = 10)
+{
+    try
+    {
+        var (items, totalCount) = await _itemService.GetAllItemsPaginatedAsync(page, limit);
 
-                return Ok(response);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        var response = new
+        {
+            data = items,
+            total = totalCount,
+            page,
+            limit
+        };
+
+        return Ok(response);
+    }
+    catch (Exception ex)
+    {
+        return BadRequest(ex.Message);
+    }
+}
 
         // GET: api/Item/{id}
         [HttpGet("{id}")]

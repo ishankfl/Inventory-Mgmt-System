@@ -81,6 +81,10 @@ namespace Inventory_Mgmt_System.Services
             ValidateIssue(issue, isNew: false);
             return await _issueRepository.UpdateIssueAsync(issue);
         }
+        public async Task<(List<Issue> Issues, int TotalCount)> GetAllPaginatedIssuesAsync(int page, int limit)
+        {
+            return await _issueRepository.GetAllPaginatedIssuesAsync(page, limit);
+        }
 
         public async Task<bool> DeleteIssueAsync(Guid id)
         {

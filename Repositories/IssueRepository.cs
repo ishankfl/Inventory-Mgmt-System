@@ -164,6 +164,76 @@ namespace Inventory_Mgmt_System.Repositories
             return issues;
         }
 
+        public async Task<(List<Issue> Issues, int TotalCount)> GetAllPaginatedIssuesAsync(int page, int limit)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+
+            int offset = (page - 1) * limit;
+
+            const string paginatedIssuesQuery = @"
+        SELECT * FROM ""Issues""
+        ORDER BY ""IssueDate"" DESC
+        OFFSET @Offset LIMIT @Limit;";
+
+            const string countQuery = @"SELECT COUNT(*) FROM ""Issues"";";
+
+            var issues = (await connection.QueryAsync<Issue>(paginatedIssuesQuery, new { Offset = offset, Limit = limit })).ToList();
+            var totalCount = await connection.ExecuteScalarAsync<int>(countQuery);
+
+            if (!issues.Any()) return (issues, totalCount);
+
+            // 1. Load related users
+            var issuedUserIds = issues.Select(i => i.IssuedByUserId).Distinct().ToArray();
+            const string usersQuery = @"SELECT * FROM ""Users"" WHERE ""Id"" = ANY(@UserIds)";
+            var users = (await connection.QueryAsync<User>(usersQuery, new { UserIds = issuedUserIds }))
+                        .ToDictionary(u => u.Id, u => u);
+
+            // 2. Load issue details
+            var issueIds = issues.Select(i => i.Id).Distinct().ToArray();
+            const string detailsQuery = @"SELECT * FROM ""IssueDetails"" WHERE ""IssueId"" = ANY(@IssueIds)";
+            var details = (await connection.QueryAsync<IssueDetail>(detailsQuery, new { IssueIds = issueIds })).ToList();
+
+            // 3. Load items
+            var itemIds = details.Select(d => d.ItemId).Distinct().ToArray();
+            const string itemsQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = ANY(@ItemIds)";
+            var items = (await connection.QueryAsync<Item>(itemsQuery, new { ItemIds = itemIds }))
+                        .ToDictionary(i => i.Id, i => i);
+
+            // 4. Load stock
+            const string stocksQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = ANY(@ItemIds)";
+            var stocks = (await connection.QueryAsync<Stock>(stocksQuery, new { ItemIds = itemIds })).ToList();
+
+            // 5. Map Users
+            foreach (var issue in issues)
+            {
+                if (users.TryGetValue(issue.IssuedByUserId, out var user))
+                    issue.IssuedByUser = user;
+            }
+
+            // 6. Map IssueDetails
+            foreach (var issue in issues)
+            {
+                issue.IssueDetails = details
+                    .Where(d => d.IssueId == issue.Id)
+                    .ToList();
+            }
+
+            // 7. Map Items and Stocks into IssueDetails
+            foreach (var detail in details)
+            {
+                if (items.TryGetValue(detail.ItemId, out var item))
+                {
+                    detail.Item = item;
+
+                    var itemStocks = stocks.Where(s => s.ItemId == item.Id).ToList();
+                    item.Stock = itemStocks;
+                }
+            }
+
+            return (issues, totalCount);
+        }
+
 
         public async Task<bool> DeleteIssueAsync(Guid id)
         {

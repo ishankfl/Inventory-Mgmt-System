@@ -120,5 +120,32 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
+        [HttpGet("paginated")]
+        public async Task<IActionResult> GetPaginatedIssues([FromQuery] int page = 1, [FromQuery] int limit = 10)
+        {
+            try
+            {
+                var (issues, totalCount) = await _issueService.GetAllPaginatedIssuesAsync(page, limit);
+
+                var response = new
+                {
+                    Data = issues,
+                    Pagination = new
+                    {
+                        CurrentPage = page,
+                        PageSize = limit,
+                        TotalCount = totalCount,
+                        TotalPages = (int)Math.Ceiling(totalCount / (double)limit)
+                    }
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
     }
 }
