@@ -8,4 +8,11 @@
         public decimal Price { get; set; }
         public int TotalStockQuantity { get; set; }
     }
+
+    public class TopIssuedItemResponseDto
+    {
+        public Guid ItemId { get; set; }
+        public string Name { get; set; }
+        public decimal TotalIssuedQuantity { get; set; }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using Inventory_Mgmt_System.Data;
+using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
 using System.Data;
@@ -407,29 +408,76 @@ namespace Inventory_Mgmt_System.Repositories
             );
         }
 
-        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+        /*     public async Task<(Item Item, decimal TotalIssuedQuantity)> GetTopIssuedItemsAsync()
+             {
+                 using var connection = _dapperDbContext.CreateConnection();
+                 connection.Open();
+
+                 const string query = @"
+             ";
+
+                 var result = await connection.QueryAsync<Item, decimal, (Item, decimal)>(
+                     query,
+                     (item, totalQty) => (item, totalQty),
+                     splitOn: "TotalIssuedQuantity"
+                 );
+
+                 return result.ToList();
+             }
+     */
+
+
+
+        /* public async Task<List<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+         {
+             using var connection = _dapperDbContext.CreateConnection();
+
+             const string query = @"
+     SELECT 
+         i.""Id"",
+         i.""Name"",
+
+         SUM(d.""Quantity"") AS TotalIssuedQuantity
+     FROM ""IssueDetails"" d
+     INNER JOIN ""Items"" i ON i.""Id"" = d.""ItemId""
+     GROUP BY i.""Id"", i.""Name""
+     ORDER BY TotalIssuedQuantity DESC
+     LIMIT 10";
+
+             var rawResult = await connection.QueryAsync<TopIssuedItemDto>(query);
+
+             return rawResult
+                 .Select(r => (
+                     new Item
+                     {
+                         Id = r.Id,
+                         Name = r.Name,
+                     },
+                     r.TotalIssuedQuantity
+                 ))
+                 .ToList();
+         }*/
+
+        public async Task<List<TopIssuedItemResponseDto>> GetTopIssuedItemsAsync()
         {
             using var connection = _dapperDbContext.CreateConnection();
-            connection.Open();
 
             const string query = @"
         SELECT 
-            i.*,
+            i.""Id"" AS ItemId,
+            i.""Name"",
             SUM(d.""Quantity"") AS TotalIssuedQuantity
         FROM ""IssueDetails"" d
         INNER JOIN ""Items"" i ON i.""Id"" = d.""ItemId""
-        GROUP BY i.""Id""
+        GROUP BY i.""Id"", i.""Name""
         ORDER BY TotalIssuedQuantity DESC
         LIMIT 10";
 
-            var result = await connection.QueryAsync<Item, decimal, (Item, decimal)>(
-                query,
-                (item, totalQty) => (item, totalQty),
-                splitOn: "TotalIssuedQuantity"
-            );
-
-            return result;
+            var result = await connection.QueryAsync<TopIssuedItemResponseDto>(query);
+            return result.ToList();
         }
+
+
 
     }
 }

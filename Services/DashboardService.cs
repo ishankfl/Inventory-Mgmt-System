@@ -40,7 +40,7 @@ namespace Inventory_Mgmt_System.Services
             return top10Proudcts;
         }
 
-        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+        public async Task<List<TopIssuedItemResponseDto>> GetTopIssuedItemsAsync()
         {
             var topIssuedProducts = await _issueService.GetTopIssuedItemsAsync();
             return topIssuedProducts;

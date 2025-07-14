@@ -11,7 +11,8 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<Issue> UpdateIssueAsync(IssueDto issue);
         Task<bool> DeleteIssueAsync(Guid id);
 
-        Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
+        //Task<List<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
+        Task<List<TopIssuedItemResponseDto>> GetTopIssuedItemsAsync();
         Task<(List<Issue> Issues, int TotalCount)> GetAllPaginatedIssuesAsync(int page, int limit);
     }
 }

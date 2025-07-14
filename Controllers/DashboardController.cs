@@ -32,13 +32,13 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
         [HttpGet("GetTopIssuedProducts")]
-        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+        public async Task<IActionResult> GetTopIssuedItemsAsync()
         {
             try
             {
                 var topProducts = await _dashboardService.GetTopIssuedItemsAsync();
                 Console.WriteLine(topProducts);
-                return    topProducts;
+                return    Ok(topProducts);
                   //  topProducts;
             }
             catch (Exception ex) { 

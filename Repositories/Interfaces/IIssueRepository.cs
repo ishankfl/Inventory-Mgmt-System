@@ -1,4 +1,5 @@
-﻿using Inventory_Mgmt_System.Models;
+﻿using Inventory_Mgmt_System.Dtos;
+using Inventory_Mgmt_System.Models;
 
 namespace Inventory_Mgmt_System.Repositories.Interfaces
 {
@@ -10,7 +11,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Issue> UpdateIssueAsync(Issue issue);
         Task<bool> DeleteIssueAsync(Guid id);
 
-        Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
-        Task<(List<Issue> Issues, int TotalCount)> GetAllPaginatedIssuesAsync(int page, int limit);
+         Task<(List<Issue> Issues, int TotalCount)> GetAllPaginatedIssuesAsync(int page, int limit);
+       // Task<List<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
+        Task<List<TopIssuedItemResponseDto>> GetTopIssuedItemsAsync();
     }
 }

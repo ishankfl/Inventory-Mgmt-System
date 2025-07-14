@@ -124,7 +124,7 @@ namespace Inventory_Mgmt_System.Services
                 throw new ArgumentException("Issue ID is required for update.");
         }
 
-        public async Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync()
+        public async Task<List<TopIssuedItemResponseDto>> GetTopIssuedItemsAsync()
         {
             return await _issueRepository.GetTopIssuedItemsAsync();
         }
