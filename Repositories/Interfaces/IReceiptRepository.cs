@@ -20,6 +20,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<List<TopItemDto>> GetTop10Item();
         Task<(List<Receipt> Receipts, int TotalCount)> GetAllReceiptsPaginatedAsync(int page, int limit);
 
+        Task<List<DailyTotalPriceDto>> GetDailyTotalReceiptValueAsync();
+
     }
 
 }

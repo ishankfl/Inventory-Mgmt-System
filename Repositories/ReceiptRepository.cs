@@ -551,6 +551,25 @@ namespace Inventory_Mgmt_System.Repositories
             }
         }
 
+        public async Task<List<DailyTotalPriceDto>> GetDailyTotalReceiptValueAsync()
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+
+            const string query = @"
+        SELECT 
+            DATE(r.""ReceiptDate"") AS Date,
+            SUM(rd.""Quantity"" * rd.""Rate"") AS TotalPrice
+        FROM ""Receipts"" r
+        JOIN ""ReceiptDetails"" rd ON r.""Id"" = rd.""ReceiptId""
+        WHERE r.""ReceiptDate"" >= CURRENT_DATE - INTERVAL '1 year'
+        GROUP BY DATE(r.""ReceiptDate"")
+        ORDER BY DATE(r.""ReceiptDate"")";
+
+            var result = await connection.QueryAsync<DailyTotalPriceDto>(query);
+            return result.ToList();
+        }
+
+
 
 
 

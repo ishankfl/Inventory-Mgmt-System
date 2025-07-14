@@ -228,6 +228,11 @@ namespace Inventory_Mgmt_System.Services
             return await _receiptRepository.GetTop10Item();
         }
 
+       public async  Task<List<DailyTotalPriceDto>> GetDailyTotalReceiptValueAsync()
+        {
+            return await _receiptRepository.GetDailyTotalReceiptValueAsync();
+        }
+
     } 
 
     }

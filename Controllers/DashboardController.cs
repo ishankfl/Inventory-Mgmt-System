@@ -16,51 +16,20 @@ namespace Inventory_Mgmt_System.Controllers
         {
             _dashboardService = dashboardService;
         }
-        [HttpGet("TopProductByQty")]
-        public async Task<IActionResult> TopProductByQty()
+        [HttpGet("overview")]
+        public async Task<IActionResult> GetDashboardOverview()
         {
             try
             {
-
-                var top10Products = await _dashboardService.GetTopTenQtyProducts();
-                return StatusCode(200, top10Products);
-            }
-            catch (Exception ex) { 
-                return StatusCode(500, ex);
-           
-            
-            }
-        }
-        [HttpGet("GetTopIssuedProducts")]
-        public async Task<IActionResult> GetTopIssuedItemsAsync()
-        {
-            try
-            {
-                var topProducts = await _dashboardService.GetTopIssuedItemsAsync();
-                Console.WriteLine(topProducts);
-                return    Ok(topProducts);
-                  //  topProducts;
-            }
-            catch (Exception ex) { 
-                Console.WriteLine(ex);
-                throw;
-            }
-        }
-
-        [HttpGet("GetCount")]
-        public async Task<IActionResult> GetCount()
-        {
-            try
-            {
-
-                var getCount = await _dashboardService.GetCount();
-                return StatusCode(200, getCount);
+                var data = await _dashboardService.GetFullDashboardDataAsync();
+                return Ok(data);
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return StatusCode(500, new { success = "False", message = "SOmething went wrong" });
+                return StatusCode(500, new { success = false, message = "An error occurred while loading dashboard data." });
             }
         }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Inventory_Mgmt_System.Dtos;
 using Inventory_Mgmt_System.Models;
+using System.Runtime.CompilerServices;
 
 namespace Inventory_Mgmt_System.Services.Interfaces
 {
@@ -7,7 +8,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
     {
       //  Task<List<Product>> GetTopTenQtyProducts();
 //        Task<List<Product>> GetTopIssuedProductsAsync();
-        Task<Dictionary<string,int>> GetCount();
+        Task<Dictionary<string,dynamic>> GetCount();
         // Task<List<TopItemDto>> GetTopIssuedProductsAsync();
 
         //Task<IEnumerable<(Item Item, decimal TotalIssuedQuantity)>> GetTopIssuedItemsAsync();
@@ -15,5 +16,8 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<List<TopIssuedItemResponseDto>> GetTopIssuedItemsAsync();
         Task<List<TopItemDto>> GetTopTenQtyProducts();
 
+        Task<List<DailyTotalPriceDto>> GetDailyTotalReceiptValueAsync();
+
+        Task<DashboardDataDto> GetFullDashboardDataAsync();
     }
 }
