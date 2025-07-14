@@ -385,6 +385,77 @@ namespace Inventory_Mgmt_System.Repositories
                 return details.OrderByDescending(d => d.Receipt?.ReceiptDate);
             }
         }
+        public async Task<(List<Receipt> Receipts, int TotalCount)> GetAllReceiptsPaginatedAsync(int page, int limit)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+            connection.Open();
+
+            int offset = (page - 1) * limit;
+
+            // 1. Get total count of receipts for pagination metadata
+            const string countQuery = @"SELECT COUNT(*) FROM ""Receipts"";";
+            var totalCount = await connection.ExecuteScalarAsync<int>(countQuery);
+
+            // 2. Get paginated receipts ordered by ReceiptDate DESC
+            const string receiptQuery = @"
+        SELECT * FROM ""Receipts""
+        ORDER BY ""ReceiptDate"" DESC
+        OFFSET @Offset LIMIT @Limit";
+
+            var receipts = (await connection.QueryAsync<Receipt>(receiptQuery, new { Offset = offset, Limit = limit })).ToList();
+
+            if (!receipts.Any())
+                return (receipts, totalCount);
+
+            // 3. Collect all Receipt IDs for details query
+            var receiptIds = receipts.Select(r => r.Id).ToList();
+
+            // 4. Fetch Vendors for these receipts in bulk
+            var vendorIds = receipts.Select(r => r.VendorId).Distinct().ToList();
+            const string vendorQuery = @"SELECT * FROM ""Vendor"" WHERE ""Id"" = ANY(@VendorIds)";
+            var vendors = (await connection.QueryAsync<Vendor>(vendorQuery, new { VendorIds = vendorIds })).ToDictionary(v => v.Id);
+
+            // 5. Fetch ReceiptDetails for these receipts
+            const string detailQuery = @"SELECT * FROM ""ReceiptDetails"" WHERE ""ReceiptId"" = ANY(@ReceiptIds)";
+            var details = (await connection.QueryAsync<ReceiptDetail>(detailQuery, new { ReceiptIds = receiptIds })).ToList();
+
+            // 6. Fetch Items for details
+            var itemIds = details.Select(d => d.ItemId).Distinct().ToList();
+            const string itemQuery = @"SELECT * FROM ""Items"" WHERE ""Id"" = ANY(@ItemIds)";
+            var items = (await connection.QueryAsync<Item>(itemQuery, new { ItemIds = itemIds })).ToDictionary(i => i.Id);
+
+            // 7. Fetch Stock for these items
+            const string stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = ANY(@ItemIds)";
+            var stocks = (await connection.QueryAsync<Stock>(stockQuery, new { ItemIds = itemIds })).ToList();
+            var stockMap = stocks.GroupBy(s => s.ItemId).ToDictionary(g => g.Key, g => g.ToList());
+
+            // 8. Map nested data into receipts
+            foreach (var receipt in receipts)
+            {
+                // Attach vendor
+                if (vendors.TryGetValue(receipt.VendorId, out var vendor))
+                    receipt.Vendor = vendor;
+
+                // Attach details + nested item + stock
+                var receiptDetails = details.Where(d => d.ReceiptId == receipt.Id).ToList();
+
+                foreach (var detail in receiptDetails)
+                {
+                    if (items.TryGetValue(detail.ItemId, out var item))
+                    {
+                        detail.Item = item;
+                        if (stockMap.TryGetValue(item.Id, out var stockList))
+                            item.Stock = stockList;
+                    }
+                }
+
+                receipt.ReceiptDetails = receiptDetails;
+            }
+
+            return (receipts, totalCount);
+        }
+
+
 
         public async Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync()
         {

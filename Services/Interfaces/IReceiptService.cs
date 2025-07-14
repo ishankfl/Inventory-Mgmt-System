@@ -18,5 +18,6 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<bool> IsItemUsedInAnyReceiptAsync(Guid id);
 
         Task<List<TopItemDto>> GetTop10Item();
+        Task<(List<Receipt> Receipts, int TotalCount)> GetAllReceiptsPaginatedAsync(int page, int limit);
     }
 }

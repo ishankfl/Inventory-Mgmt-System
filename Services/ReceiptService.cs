@@ -208,6 +208,11 @@ namespace Inventory_Mgmt_System.Services
             return await _receiptRepository.GetAllReceiptDetailsAsync();
         }
 
+        public async Task<(List<Receipt> Receipts, int TotalCount)> GetAllReceiptsPaginatedAsync(int page, int limit)
+        {
+            return await _receiptRepository.GetAllReceiptsPaginatedAsync(page, limit);
+        }
+
         public async Task<IEnumerable<ReceiptDetail>> GetSimplifiedReceiptDetailsAsync()
         {
             return await _receiptRepository.GetSimplifiedReceiptDetailsAsync();

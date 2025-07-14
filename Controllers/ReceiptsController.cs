@@ -71,6 +71,37 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+        [HttpGet("paginate")]
+        public async Task<IActionResult> GetAllReceipts([FromQuery] int page = 1, [FromQuery] int limit = 6)
+        {
+            try
+            {
+                var (receipts, totalCount) = await _receiptService.GetAllReceiptsPaginatedAsync(page, limit);
+
+                var totalPages = (int)Math.Ceiling((double)totalCount / limit);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = receipts,
+                    pagination = new
+                    {
+                        currentPage = page,
+                        totalCount,
+                        totalPages,
+                        pageSize = limit
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateReceipt(Guid id, [FromBody] ReceiptUpdateDto receiptDto)

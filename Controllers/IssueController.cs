@@ -4,6 +4,7 @@ using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.DependencyResolver;
 using System;
 
 namespace Inventory_Mgmt_System.Controllers
