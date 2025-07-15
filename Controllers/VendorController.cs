@@ -2,13 +2,13 @@
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-
     public class VendorController : ControllerBase
     {
         private readonly IVendorService _vendorService;
@@ -18,7 +18,7 @@ namespace Inventory_Mgmt_System.Controllers
             _vendorService = vendorService;
         }
 
-        // GET: api/vendors for get all vendors
+        // GET: api/vendor - Get all vendors
         [HttpGet]
         public async Task<ActionResult<List<Vendor>>> GetAllVendors()
         {
@@ -26,7 +26,7 @@ namespace Inventory_Mgmt_System.Controllers
             return Ok(vendors);
         }
 
-        // GET: api/vendors/{id} for get specific vendor by id
+        // GET: api/vendor/{id} - Get a specific vendor by ID
         [HttpGet("{id}")]
         public async Task<ActionResult<Vendor>> GetVendorById(Guid id)
         {
@@ -45,13 +45,17 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        // POST: api/vendors for add new vendor in the system
+        // POST: api/vendor - Add a new vendor
         [HttpPost]
         public async Task<ActionResult<Vendor>> AddVendor([FromBody] Vendor vendor)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var createdVendor = await _vendorService.AddVendorAsync(vendor);
+                var userId = GetUserId();
+                var createdVendor = await _vendorService.AddVendorAsync(vendor, userId);
                 return CreatedAtAction(nameof(GetVendorById), new { id = createdVendor.Id }, createdVendor);
             }
             catch (ArgumentException ex)
@@ -64,13 +68,14 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        // DELETE: api/vendors/{id} for delete not needed vendor 
+        // DELETE: api/vendor/{id} - Delete a vendor by ID
         [HttpDelete("{id}")]
         public async Task<ActionResult<Vendor>> DeleteVendor(Guid id)
         {
             try
             {
-                var deletedVendor = await _vendorService.DeleteVendorAsync(id);
+                var userId = GetUserId();
+                var deletedVendor = await _vendorService.DeleteVendorAsync(id, userId);
                 return Ok(deletedVendor);
             }
             catch (KeyNotFoundException ex)
@@ -81,6 +86,19 @@ namespace Inventory_Mgmt_System.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        // Helper to extract user ID from JWT claims
+        private Guid GetUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                throw new UnauthorizedAccessException("User ID is missing or invalid.");
+            }
+
+            return userId;
         }
     }
 }

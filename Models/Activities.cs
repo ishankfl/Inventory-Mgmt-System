@@ -39,6 +39,8 @@ namespace Inventory_Mgmt_System.Models
         UserDeleted,
         LowStockAlert,
         DocumentUploaded,
-        InventoryChecked
+        InventoryChecked,
+        VendorDeleted,
+        VendorAdded
     }
 }
