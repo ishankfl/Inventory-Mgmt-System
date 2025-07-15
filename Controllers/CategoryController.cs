@@ -2,13 +2,13 @@
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -18,14 +18,25 @@ namespace Inventory_Mgmt_System.Controllers
             _categoryService = categoryService;
         }
 
-        [Authorize]
+        private Guid GetUserId()
+        {
+            var userIdClaim = User.FindFirst("id")?.Value;
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                throw new UnauthorizedAccessException("User ID is missing or invalid.");
+            return userId;
+        }
+
         [HttpPost]
-        public async Task<IActionResult> AddCategory(CategoryCreateDto categorydto)
+        public async Task<IActionResult> AddCategory([FromBody] CategoryCreateDto categoryDto)
         {
             try
             {
-                var createdCategory = await _categoryService.CreateCategory(categorydto);
-                return Ok(createdCategory);
+                var createdCategory = await _categoryService.CreateCategory(categoryDto, GetUserId());
+                return CreatedAtAction(nameof(GetCategoryById), new { id = createdCategory.Id }, createdCategory);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -47,13 +58,29 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetCategoryById(Guid id)
+        {
+            try
+            {
+                var category = await _categoryService.GetCategoryById(id);
+                if (category == null)
+                    return NotFound(new { message = $"Category with ID {id} not found." });
+
+                return Ok(category);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Something went wrong: {ex.Message}");
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
             try
             {
-                var category = await _categoryService.DeleteCategory(id);
+                var category = await _categoryService.DeleteCategory(id, GetUserId());
                 return Ok(category);
             }
             catch (KeyNotFoundException ex)
@@ -66,36 +93,17 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCategoryById(Guid id)
-        {
-            try
-            {
-                var category = await _categoryService.GetCategoryById(id);
-                if (category == null)
-                {
-                    return NotFound(new { message = $"Category with ID {id} not found." });
-                }
-                return Ok(category);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Something went wrong: {ex.Message}");
-            }
-        }
-
-        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCategory(Guid id, CategoryCreateDto categoryDto)
+        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryCreateDto categoryDto)
         {
             try
             {
-                var updatedCategory = await _categoryService.UpdateCategory(id, categoryDto);
+                var updatedCategory = await _categoryService.UpdateCategory(id, categoryDto, GetUserId());
                 return Ok(updatedCategory);
             }
             catch (InvalidOperationException ex)
             {
-                return StatusCode(409, new { message = ex.Message });
+                return Conflict(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
