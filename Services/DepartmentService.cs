@@ -80,21 +80,26 @@ namespace Inventory_Mgmt_System.Services
             existing.Name = dto.Name;
             existing.Description = dto.Description;
 
-            var updatedDepartment = await _repository.UpdateAsync(existing);
+            await _repository.UpdateAsync(existing);
 
-            if (updatedDepartment != null)
+            /*    if (updatedDepartment != null)
+                {*/
+            var activity = new ActivityDTO
             {
-                var activity = new ActivityDTO
-                {
-                    Action = $"Department updated from '{oldName}' to '{dto.Name}'",
-                    Status = "info",
-                    Type = ActivityType.DepartmentUpdated,
-                    UserId = performedByUserId
-                };
-                await _activityServices.AddNewActivity(activity);
-            }
+                Action = $"Department updated from '{oldName}' to '{dto.Name}'",
+                Status = "info",
+                Type = ActivityType.DepartmentUpdated,
+                UserId = performedByUserId
+            };
+            await _activityServices.AddNewActivity(activity);
 
-            return updatedDepartment;
+
+            return new Department {
+                Description = dto.Description,
+
+                Id = id,
+                Name = dto.Name,
+            };
         }
 
         public async Task<bool> DeleteDepartmentAsync(Guid id, Guid performedByUserId)
@@ -103,21 +108,20 @@ namespace Inventory_Mgmt_System.Services
             if (existing == null)
                 return false;
 
-            var result = await _repository.DeleteAsync(id);
+            await _repository.DeleteAsync(id);
 
-            if (result)
+
+            var activity = new ActivityDTO
             {
-                var activity = new ActivityDTO
-                {
-                    Action = $"Department deleted: {existing.Name}",
-                    Status = "danger",
-                    Type = ActivityType.DepartmentDeleted,
-                    UserId = performedByUserId
-                };
-                await _activityServices.AddNewActivity(activity);
-            }
+                Action = $"Department deleted: {existing.Name}",
+                Status = "danger",
+                Type = ActivityType.DepartmentDeleted,
+                UserId = performedByUserId
+            };
+            await _activityServices.AddNewActivity(activity);
+        
 
-            return result;
+            return true;
         }
     }
 }
