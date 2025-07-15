@@ -44,6 +44,9 @@ namespace Inventory_Mgmt_System.Models
         VendorAdded,
         ItemDeleted,
         ItemUpdated,
-        ItemAdded
+        ItemAdded,
+        DepartmentDeleted,
+        DepartmentUpdated,
+        DepartmentCreated
     }
 }

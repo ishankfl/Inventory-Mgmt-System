@@ -7,14 +7,11 @@ namespace Inventory_Mgmt_System.Services.Interfaces
     {
         Task<List<Department>> GetAllDepartmentsAsync();
         Task<Department?> GetDepartmentByIdAsync(Guid id);
-        Task<Department> CreateDepartmentAsync(DepartmentDto dto);
-        Task<bool> DeleteDepartmentAsync(Guid id);
-        // Task<bool> UpdateDepartmentAsync(Guid id, DepartmentDto dto);
+        Task<Department?> GetByIdAsync(Guid id);               // Redundant, but included as per implementation
         Task<Department?> GetByNameAsync(string name);
 
-
-        Task<Department?> GetByIdAsync(Guid id);
-        Task<Department> UpdateDepartmentAsync(Guid id, DepartmentDto dto);
-        // Task<Department> UpdateDepartmentAsync(Guid id, DepartmentDto dto);
+        Task<Department> CreateDepartmentAsync(DepartmentDto dto, Guid performedByUserId);
+        Task<Department?> UpdateDepartmentAsync(Guid id, DepartmentDto dto, Guid performedByUserId);
+        Task<bool> DeleteDepartmentAsync(Guid id, Guid performedByUserId);
     }
 }

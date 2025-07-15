@@ -8,10 +8,12 @@ namespace Inventory_Mgmt_System.Services
     public class DepartmentService : IDepartmentService
     {
         private readonly IDepartmentRepository _repository;
+        private readonly IActivityServices _activityServices;
 
-        public DepartmentService(IDepartmentRepository repository)
+        public DepartmentService(IDepartmentRepository repository, IActivityServices activityServices)
         {
             _repository = repository;
+            _activityServices = activityServices;
         }
 
         public async Task<List<Department>> GetAllDepartmentsAsync()
@@ -34,7 +36,7 @@ namespace Inventory_Mgmt_System.Services
             return await _repository.GetByNameAsync(name);
         }
 
-        public async Task<Department> CreateDepartmentAsync(DepartmentDto dto)
+        public async Task<Department> CreateDepartmentAsync(DepartmentDto dto, Guid performedByUserId)
         {
             var existing = await _repository.GetByNameAsync(dto.Name);
             if (existing != null)
@@ -47,10 +49,24 @@ namespace Inventory_Mgmt_System.Services
                 Description = dto.Description
             };
 
-            return await _repository.AddAsync(dept);
+            var createdDepartment = await _repository.AddAsync(dept);
+
+            if (createdDepartment != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Department created: {dto.Name}",
+                    Status = "success",
+                    Type = ActivityType.DepartmentCreated,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return createdDepartment;
         }
 
-        public async Task<Department?> UpdateDepartmentAsync(Guid id, DepartmentDto dto)
+        public async Task<Department?> UpdateDepartmentAsync(Guid id, DepartmentDto dto, Guid performedByUserId)
         {
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null)
@@ -60,21 +76,48 @@ namespace Inventory_Mgmt_System.Services
             if (duplicate != null && duplicate.Id != id)
                 return null;
 
+            string oldName = existing.Name;
             existing.Name = dto.Name;
             existing.Description = dto.Description;
 
-            await _repository.UpdateAsync(existing);
-            return existing;
+            var updatedDepartment = await _repository.UpdateAsync(existing);
+
+            if (updatedDepartment != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Department updated from '{oldName}' to '{dto.Name}'",
+                    Status = "info",
+                    Type = ActivityType.DepartmentUpdated,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return updatedDepartment;
         }
 
-        public async Task<bool> DeleteDepartmentAsync(Guid id)
+        public async Task<bool> DeleteDepartmentAsync(Guid id, Guid performedByUserId)
         {
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null)
                 return false;
 
-            await _repository.DeleteAsync(id);
-            return true;
+            var result = await _repository.DeleteAsync(id);
+
+            if (result)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Department deleted: {existing.Name}",
+                    Status = "danger",
+                    Type = ActivityType.DepartmentDeleted,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return result;
         }
     }
 }
