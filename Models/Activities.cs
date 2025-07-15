@@ -41,6 +41,9 @@ namespace Inventory_Mgmt_System.Models
         DocumentUploaded,
         InventoryChecked,
         VendorDeleted,
-        VendorAdded
+        VendorAdded,
+        ItemDeleted,
+        ItemUpdated,
+        ItemAdded
     }
 }

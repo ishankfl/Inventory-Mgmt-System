@@ -11,24 +11,23 @@ namespace Inventory_Mgmt_System.Services
     public class ItemService : IItemService
     {
         private readonly IItemRepository _itemRepository;
-        private readonly IReceiptService  _receiptService;
+        private readonly IReceiptService _receiptService;
+        private readonly IActivityServices _activityServices;
 
-
-        public ItemService(IItemRepository itemRepository, IReceiptService receiptService)
+        public ItemService(
+            IItemRepository itemRepository,
+            IReceiptService receiptService,
+            IActivityServices activityServices)
         {
             _itemRepository = itemRepository;
             _receiptService = receiptService;
+            _activityServices = activityServices;
         }
 
-        /* public async Task<List<Item>> GetAllItemsAsync()
-         {
-             return await _itemRepository.GetAllAsync();
-         }*/
         public async Task<(List<Item> Items, int TotalCount)> GetAllItemsPaginatedAsync(int page, int limit)
         {
             return await _itemRepository.GetAllPaginatedAsync(page, limit);
         }
-
 
         public async Task<Item> GetItemByIdAsync(Guid id)
         {
@@ -42,7 +41,7 @@ namespace Inventory_Mgmt_System.Services
             return item;
         }
 
-        public async Task<Item> AddItemAsync(ItemDto itemDto)
+        public async Task<Item> AddItemAsync(ItemDto itemDto, Guid performedByUserId)
         {
             Item item = new Item
             {
@@ -52,13 +51,28 @@ namespace Inventory_Mgmt_System.Services
             };
             ValidateItem(item);
 
-            return await _itemRepository.AddAsync(item);
+            var addedItem = await _itemRepository.AddAsync(item);
+
+            if (addedItem != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"New item added: {item.Name}",
+                    Status = "success",
+                    Type = ActivityType.ItemAdded,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return addedItem;
         }
 
-        public async Task<Item> UpdateItemAsync(Guid Id, ItemDto itemDto)
+        public async Task<Item> UpdateItemAsync(Guid Id, ItemDto itemDto, Guid performedByUserId)
         {
             if (Id == Guid.Empty)
                 throw new ArgumentException("Item ID cannot be empty for update.");
+
             Item item = new Item
             {
                 Id = Id,
@@ -72,9 +86,24 @@ namespace Inventory_Mgmt_System.Services
             if (existingItem == null)
                 throw new KeyNotFoundException($"Item with ID {item.Id} not found.");
 
-            return await _itemRepository.UpdateAsync(item);
+            var updatedItem = await _itemRepository.UpdateAsync(item);
+
+            if (updatedItem != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Item updated: {item.Name}",
+                    Status = "info",
+                    Type = ActivityType.ItemUpdated,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return updatedItem;
         }
-        public async Task<Item> DeleteItemAsync(Guid id)
+
+        public async Task<Item> DeleteItemAsync(Guid id, Guid performedByUserId)
         {
             if (id == Guid.Empty)
                 throw new ArgumentException("Item ID cannot be empty.");
@@ -83,9 +112,26 @@ namespace Inventory_Mgmt_System.Services
             if (isUsed)
                 throw new InvalidOperationException("Cannot delete this item because it is used in one or more receipts.");
 
-            return await _itemRepository.DeleteAsync(id);
-        }
+            var itemToDelete = await _itemRepository.GetByIdAsync(id);
+            if (itemToDelete == null)
+                throw new KeyNotFoundException($"Item with ID {id} not found.");
 
+            var deletedItem = await _itemRepository.DeleteAsync(id);
+
+            if (deletedItem != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Item deleted: {itemToDelete.Name}",
+                    Status = "danger",
+                    Type = ActivityType.ItemDeleted,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return deletedItem;
+        }
 
         private void ValidateItem(Item item)
         {

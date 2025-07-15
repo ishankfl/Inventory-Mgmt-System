@@ -5,13 +5,13 @@ using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-
     public class ItemController : ControllerBase
     {
         private readonly IItemService _itemService;
@@ -21,43 +21,29 @@ namespace Inventory_Mgmt_System.Controllers
             _itemService = itemService;
         }
 
-   /*     // GET: api/Item
+        // GET: api/Item?page=1&limit=10
         [HttpGet]
-        public async Task<IActionResult> GetAllItems()
+        public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuery] int limit = 10)
         {
             try
             {
+                var (items, totalCount) = await _itemService.GetAllItemsPaginatedAsync(page, limit);
 
-            var items = await _itemService.GetAllItemsAsync();
-            return Ok(items);
+                var response = new
+                {
+                    data = items,
+                    total = totalCount,
+                    page,
+                    limit
+                };
+
+                return Ok(response);
             }
-            catch(Exception ex) {
-            
-                return BadRequest(ex.ToString());
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
-        }*/
-   [HttpGet]
-public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuery] int limit = 10)
-{
-    try
-    {
-        var (items, totalCount) = await _itemService.GetAllItemsPaginatedAsync(page, limit);
-
-        var response = new
-        {
-            data = items,
-            total = totalCount,
-            page,
-            limit
-        };
-
-        return Ok(response);
-    }
-    catch (Exception ex)
-    {
-        return BadRequest(ex.Message);
-    }
-}
+        }
 
         // GET: api/Item/{id}
         [HttpGet("{id}")]
@@ -82,9 +68,13 @@ public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuer
         [HttpPost]
         public async Task<IActionResult> AddItem([FromBody] ItemDto item)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var newItem = await _itemService.AddItemAsync(item);
+                var userId = GetUserId();
+                var newItem = await _itemService.AddItemAsync(item, userId);
                 return CreatedAtAction(nameof(GetItemById), new { id = newItem.Id }, newItem);
             }
             catch (ArgumentException ex)
@@ -94,16 +84,16 @@ public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuer
         }
 
         // PUT: api/Item/{id}
-        [HttpPut("{idInString}")]
-        public async Task<IActionResult> UpdateItem(string idInString, [FromBody] ItemDto item)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] ItemDto item)
         {
-            Guid id = Guid.Parse(idInString);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                if (id == Guid.Empty)
-                    return BadRequest(new { message = "ID in URL and body do not match." });
-
-                var updatedItem = await _itemService.UpdateItemAsync(id, item);
+                var userId = GetUserId();
+                var updatedItem = await _itemService.UpdateItemAsync(id, item, userId);
                 return Ok(updatedItem);
             }
             catch (KeyNotFoundException ex)
@@ -115,12 +105,15 @@ public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuer
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // DELETE: api/Item/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteItem(Guid id)
         {
             try
             {
-                var deletedItem = await _itemService.DeleteItemAsync(id);
+                var userId = GetUserId();
+                var deletedItem = await _itemService.DeleteItemAsync(id, userId);
                 return Ok(deletedItem);
             }
             catch (KeyNotFoundException ex)
@@ -134,8 +127,21 @@ public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuer
             catch (InvalidOperationException ex)
             {
                 return Conflict(new { message = ex.Message }); // 409 Conflict
-            } 
+            }
         }
+
+        // Helper method to get user ID from claims
+   private Guid GetUserId()
+{
+    var userIdClaim = User.FindFirst("id")?.Value;
+
+    if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+    {
+        throw new UnauthorizedAccessException("User ID claim is missing or invalid.");
+    }
+
+    return userId;
+}
 
     }
 }

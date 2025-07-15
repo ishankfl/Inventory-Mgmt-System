@@ -8,12 +8,11 @@ namespace Inventory_Mgmt_System.Services.Interfaces
 {
     public interface IItemService
     {
-       // Task<List<Item>> GetAllItemsAsync();
-        Task<Item> GetItemByIdAsync(Guid id);
-        Task<Item> AddItemAsync(ItemDto item);
-        Task<Item> UpdateItemAsync(Guid id, ItemDto item);
-        Task<Item> DeleteItemAsync(Guid id);
         Task<(List<Item> Items, int TotalCount)> GetAllItemsPaginatedAsync(int page, int limit);
+        Task<Item> GetItemByIdAsync(Guid id);
+        Task<Item> AddItemAsync(ItemDto itemDto, Guid performedByUserId);
+        Task<Item> UpdateItemAsync(Guid Id, ItemDto itemDto, Guid performedByUserId);
+        Task<Item> DeleteItemAsync(Guid id, Guid performedByUserId);
         Task<int> GetTotalCountOfItems();
     }
 }
