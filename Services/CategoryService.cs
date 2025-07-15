@@ -8,13 +8,15 @@ namespace Inventory_Mgmt_System.Services
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IActivityServices _activityServices;
 
-        public CategoryService(ICategoryRepository categoryRepository)
+        public CategoryService(ICategoryRepository categoryRepository, IActivityServices activityServices)
         {
             _categoryRepository = categoryRepository;
+            _activityServices = activityServices;
         }
 
-        public async Task<Category> CreateCategory(CategoryCreateDto categorydto)
+        public async Task<Category> CreateCategory(CategoryCreateDto categorydto, Guid performedByUserId)
         {
             var category = new Category
             {
@@ -31,6 +33,19 @@ namespace Inventory_Mgmt_System.Services
             }
 
             var created = await _categoryRepository.CreateCategory(category);
+
+            if (created != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Category created: {categorydto.Name}",
+                    Status = "success",
+                    Type = ActivityType.CategoryCreated,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
             return created;
         }
 
@@ -54,7 +69,7 @@ namespace Inventory_Mgmt_System.Services
             return await _categoryRepository.GetCategoryByUser(id);
         }
 
-        public async Task<Category> UpdateCategory(Guid id, CategoryCreateDto categoryDto)
+        public async Task<Category> UpdateCategory(Guid id, CategoryCreateDto categoryDto, Guid performedByUserId)
         {
             var existingCategory = await _categoryRepository.GetCategoryById(id);
             if (existingCategory == null)
@@ -68,23 +83,50 @@ namespace Inventory_Mgmt_System.Services
                 throw new InvalidOperationException($"Category with name '{categoryDto.Name}' already exists.");
             }
 
+            string oldName = existingCategory.Name;
             existingCategory.setName(categoryDto.Name);
             existingCategory.Description = categoryDto.Description;
 
             var updatedCategory = await _categoryRepository.UpdateCategory(existingCategory);
+
+            if (updatedCategory != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Category updated from '{oldName}' to '{categoryDto.Name}'",
+                    Status = "info",
+                    Type = ActivityType.CategoryUpdated,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
             return updatedCategory;
         }
 
-
-        public async Task<Category> DeleteCategory(Guid id)
+        public async Task<Category> DeleteCategory(Guid id, Guid performedByUserId)
         {
-            var category = await _categoryRepository.DeleteCategory(id);
+            var category = await _categoryRepository.GetCategoryById(id);
             if (category == null)
             {
                 throw new KeyNotFoundException($"Category with ID {id} not found.");
             }
 
-            return category;
+            var deletedCategory = await _categoryRepository.DeleteCategory(id);
+
+            if (deletedCategory != null)
+            {
+                var activity = new ActivityDTO
+                {
+                    Action = $"Category deleted: {category.Name}",
+                    Status = "danger",
+                    Type = ActivityType.CategoryDeleted,
+                    UserId = performedByUserId
+                };
+                await _activityServices.AddNewActivity(activity);
+            }
+
+            return deletedCategory;
         }
     }
 }
