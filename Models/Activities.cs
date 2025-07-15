@@ -50,6 +50,11 @@ namespace Inventory_Mgmt_System.Models
         DepartmentCreated,
         CategoryCreated,
         CategoryUpdated,
-        CategoryDeleted
+        CategoryDeleted,
+        ReceiptCreated,
+        ReceiptUpdated,
+        ReceiptDeleted,
+        ReceiptCreationFailed,
+        ReceiptUpdateFailed
     }
 }
