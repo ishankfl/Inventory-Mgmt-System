@@ -54,6 +54,11 @@ namespace Inventory_Mgmt_System.Services
             return (createdUser, null);
         }
 
+        public async Task<int> GetTotalUserCount(string? search)
+        {
+            return await _userRepository.GetTotalUserCount(search);
+        }
+
         public async Task<(string? Token, string? ErrorMessage)> LoginUserAsync(LoginDto request)
         {
             var user = await _userRepository.GetUserByEmailAsync(request.Email);
@@ -85,6 +90,14 @@ namespace Inventory_Mgmt_System.Services
         public async Task<List<User>> GetAllUser()
         {
             return await _userRepository.GetAllUser();
+        }
+        public async Task<List<User>> GetUsersPagedAndFiltered(int page, int pageSize, string? search)
+        {
+            // Validate parameters if needed
+            page = Math.Max(page, 1);
+            pageSize = Math.Max(pageSize, 1);
+
+            return await _userRepository.GetUsersPagedAndFiltered(page, pageSize, search);
         }
 
         public async Task<User> GetUserByEmailAsync(string email)

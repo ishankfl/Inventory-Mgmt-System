@@ -13,7 +13,10 @@ namespace Inventory_Mgmt_System.Services.Interfaces
             Task<User> GetUserByEmailAsync(string email);
             Task<User> DeleteUserById(Guid userId, Guid performedByUserId);
             Task<User> GetUserById(Guid id);
-        
+        Task<List<User>> GetUsersPagedAndFiltered(int page, int pageSize, string? search);
+        Task<int> GetTotalUserCount(string? search);
+
+
 
     }
 }

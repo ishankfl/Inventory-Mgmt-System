@@ -30,6 +30,50 @@ namespace Inventory_Mgmt_System.Repositories
             }
 
         }
+        public async Task<List<User>> GetUsersPagedAndFiltered(int page, int pageSize, string? search)
+        {
+            var offset = (page - 1) * pageSize;
+            using var connection = dapperDbContext.CreateConnection();
+
+            // Open connection explicitly (optional, but good)
+            connection.Open();
+
+            var sql = @"
+            SELECT *
+            FROM ""Users""
+            WHERE (@search IS NULL OR LOWER(""FullName"") LIKE LOWER(@search) OR LOWER(""Email"") LIKE LOWER(@search))
+            ORDER BY ""FullName""
+            OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+        ";
+
+            var users = await connection.QueryAsync<User>(
+                sql,
+                new
+                {
+                    search = !string.IsNullOrEmpty(search) ? $"%{search}%" : null,
+                    offset,
+                    pageSize
+                });
+
+            return users.ToList();
+        }
+
+        public async Task<int> GetTotalUserCount(string? search)
+        {
+            using var connection = dapperDbContext.CreateConnection();
+
+            var sql = @"
+            SELECT COUNT(*)
+            FROM ""Users""
+            WHERE (@search IS NULL OR LOWER(""FullName"") LIKE LOWER(@search) OR LOWER(""Email"") LIKE LOWER(@search));
+        ";
+
+            var count = await connection.ExecuteScalarAsync<int>(
+                sql,
+                new { search = !string.IsNullOrEmpty(search) ? $"%{search}%" : null });
+
+            return count;
+        }
 
         public async Task<User> AddUserRepo(User user)
         {

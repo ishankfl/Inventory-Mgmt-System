@@ -83,6 +83,23 @@ namespace Inventory_Mgmt_System.Controllers
             var userList = await _userService.GetAllUser();
             return Ok(userList);
         }
+        [HttpGet("pagination")]
+        [Authorize]
+        public async Task<IActionResult> GetUsersWithPagination([FromQuery] int page = 1, [FromQuery] int pageSize = 3, [FromQuery] string? search = null)
+        {
+            var users = await _userService.GetUsersPagedAndFiltered(page, pageSize, search);
+            var totalCount = await _userService.GetTotalUserCount(search);
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            return Ok(new
+            {
+                currentPage = page,
+                totalPages,
+                users
+            });
+        }
+
+
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]

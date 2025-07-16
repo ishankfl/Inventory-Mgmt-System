@@ -14,6 +14,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
 
         Task<int> TotalNumberOfUser();
         Task<User> GetUserById(Guid id);
+        Task<List<User>> GetUsersPagedAndFiltered(int page, int pageSize, string? search);
+        Task<int> GetTotalUserCount(string? search);
 
 
     }
