@@ -68,6 +68,63 @@ namespace Inventory_Mgmt_System.Repositories
             return categories.Distinct().ToList();
         }
 
+        public async Task<(List<Category> categories, int totalCount)> GetAllCategoriesByPaginationFilter(int page = 1, int pageSize = 6, string? search = null)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+
+            page = Math.Max(page, 1);
+            pageSize = Math.Max(pageSize, 1);
+            var offset = (page - 1) * pageSize;
+
+            // Query 1: Fetch paginated results
+            const string sql = @"
+        SELECT c.*, u.*
+        FROM ""Categories"" c
+        LEFT JOIN ""Users"" u ON c.""UserId"" = u.""Id""
+        WHERE (@search IS NULL OR LOWER(c.""Name"") LIKE LOWER(@search))
+        ORDER BY c.""Name""
+        OFFSET @offset ROWS FETCH NEXT @pageSize ROWS ONLY;
+    ";
+
+            var categoryDict = new Dictionary<Guid, Category>();
+
+            var categories = await connection.QueryAsync<Category, User, Category>(
+                sql,
+                (category, user) =>
+                {
+                    if (!categoryDict.TryGetValue(category.Id, out var existingCategory))
+                    {
+                        existingCategory = category;
+                        categoryDict[category.Id] = existingCategory;
+                    }
+
+                    existingCategory.User = user;
+                    return existingCategory;
+                },
+                new
+                {
+                    offset,
+                    pageSize,
+                    search = !string.IsNullOrEmpty(search) ? $"%{search}%" : null
+                }
+            );
+
+            // Query 2: Get total count for pagination
+            const string countQuery = @"
+        SELECT COUNT(*) FROM ""Categories"" c
+        WHERE (@search IS NULL OR LOWER(c.""Name"") LIKE LOWER(@search));
+    ";
+
+            var totalCount = await connection.ExecuteScalarAsync<int>(
+                countQuery,
+                new { search = !string.IsNullOrEmpty(search) ? $"%{search}%" : null }
+            );
+
+            return (categoryDict.Values.ToList(), totalCount);
+        }
+
+
+
         public async Task<List<Category>> GetCategoryByUser(Guid userId)
         {
             using var connection = _dapperDbContext.CreateConnection();

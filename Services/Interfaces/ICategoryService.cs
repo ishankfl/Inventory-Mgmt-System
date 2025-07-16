@@ -12,5 +12,6 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<List<Category>> GetCategoryByUser(Guid id);
         Task<Category> UpdateCategory(Guid id, CategoryCreateDto categoryDto, Guid performedByUserId);
         Task<Category> DeleteCategory(Guid id, Guid performedByUserId);
+        Task<(List<Category> categories, int totalCount)> GetAllCategoriesByPaginationFilter(int page = 1, int pageSize = 6, string? search = null);
     }
 }

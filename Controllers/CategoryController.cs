@@ -45,6 +45,7 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpGet]
+
         public async Task<IActionResult> GetAllCategory()
         {
             try
@@ -57,6 +58,29 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, $"Something went wrong: {ex.Message}");
             }
         }
+        [HttpGet("pagination")]
+        public async Task<IActionResult> GetAllCategoryNyPagination([FromQuery] int page = 1, [FromQuery] int pageSize = 6, [FromQuery] string? search = null)
+        {
+            try
+            {
+                var (categories, totalCount) = await _categoryService.GetAllCategoriesByPaginationFilter(page, pageSize, search);
+
+                int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+                return Ok(new
+                {
+                    currentPage = page,
+                    totalPages,
+                    categories
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Something went wrong: {ex.Message}");
+            }
+        }
+
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCategoryById(Guid id)

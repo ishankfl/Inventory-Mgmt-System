@@ -14,6 +14,8 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Category> GetCategoryByName(string name);
 
         Task<int> TotalNumberOfCategory();
+
+        Task<(List<Category> categories, int totalCount)> GetAllCategoriesByPaginationFilter(int page = 1, int pageSize = 6, string? search = null);
         /*  Task<Category> GetCategoryById(Guid id);
           Task<Category> CreateCategory(Category category)*/
 

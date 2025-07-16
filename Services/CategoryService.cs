@@ -64,6 +64,10 @@ namespace Inventory_Mgmt_System.Services
             return await _categoryRepository.GetAllCategories();
         }
 
+        public async Task<(List<Category> categories, int totalCount)> GetAllCategoriesByPaginationFilter(int page = 1, int pageSize = 6, string? search = null)
+        {
+            return await _categoryRepository.GetAllCategoriesByPaginationFilter(page,pageSize,search);
+        }
         public async Task<List<Category>> GetCategoryByUser(Guid id)
         {
             return await _categoryRepository.GetCategoryByUser(id);
