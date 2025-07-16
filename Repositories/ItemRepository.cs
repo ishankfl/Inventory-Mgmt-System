@@ -35,7 +35,7 @@ namespace Inventory_Mgmt_System.Repositories
                         return items;
                     }
                 }*/
-        public async Task<(List<Item> Items, int TotalCount)> GetAllPaginatedAsync(int page, int limit)
+        public async Task<(List<Item> Items, int TotalCount)> GetAllPaginatedAsync(int page, int limit, string search = "")
         {
             using (var dbConnection = _dapperDbContext.CreateConnection())
             {
@@ -43,12 +43,23 @@ namespace Inventory_Mgmt_System.Repositories
 
                 int offset = (page - 1) * limit;
 
-                var query = @"SELECT * FROM ""Items"" ORDER BY ""Id"" OFFSET @Offset LIMIT @Limit;";
-                var countQuery = @"SELECT COUNT(*) FROM ""Items"";";
+                var query = @"SELECT * FROM ""Items"" 
+                     WHERE @Search = '' OR LOWER(""Name"") LIKE LOWER('%' || @Search || '%') 
+                     ORDER BY ""Id"" OFFSET @Offset LIMIT @Limit;";
+
+                var countQuery = @"SELECT COUNT(*) FROM ""Items"" 
+                          WHERE @Search = '' OR LOWER(""Name"") LIKE LOWER('%' || @Search || '%');";
+
                 var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
 
-                var items = (await dbConnection.QueryAsync<Item>(query, new { Offset = offset, Limit = limit })).ToList();
-                var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery);
+                var items = (await dbConnection.QueryAsync<Item>(query, new
+                {
+                    Offset = offset,
+                    Limit = limit,
+                    Search = search
+                })).ToList();
+
+                var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery, new { Search = search });
 
                 foreach (var item in items)
                 {
