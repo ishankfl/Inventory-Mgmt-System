@@ -2,18 +2,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Inventory_Mgmt_System.Dtos;
-using Inventory_Mgmt_System.Models;
-using Inventory_Mgmt_System.Services;
 using Inventory_Mgmt_System.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Inventory_Mgmt_System.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-
     public class ReceiptsController : ControllerBase
     {
         private readonly IReceiptService _receiptService;
@@ -23,12 +21,22 @@ namespace Inventory_Mgmt_System.Controllers
             _receiptService = receiptService;
         }
 
+        private Guid GetUserId()
+        {
+            var userIdClaim = User.FindFirst("id")?.Value;
+
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+                throw new UnauthorizedAccessException("User ID is missing or invalid.");
+
+            return Guid.Parse(userIdClaim);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateReceipt([FromBody] ReceiptCreateDto receiptDto)
         {
             try
             {
-                var receipt = await _receiptService.CreateReceiptAsync(receiptDto);
+                var receipt = await _receiptService.CreateReceiptAsync(receiptDto, GetUserId());
                 return Ok(new { success = true, data = receipt });
             }
             catch (ArgumentException ex)
@@ -58,7 +66,7 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpGet("all")]
         public async Task<IActionResult> GetAllReceipts()
         {
             try
@@ -71,13 +79,13 @@ namespace Inventory_Mgmt_System.Controllers
                 return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
+
         [HttpGet("paginate")]
-        public async Task<IActionResult> GetAllReceipts([FromQuery] int page = 1, [FromQuery] int limit = 6)
+        public async Task<IActionResult> GetAllReceiptsPaginated([FromQuery] int page = 1, [FromQuery] int limit = 6)
         {
             try
             {
                 var (receipts, totalCount) = await _receiptService.GetAllReceiptsPaginatedAsync(page, limit);
-
                 var totalPages = (int)Math.Ceiling((double)totalCount / limit);
 
                 return Ok(new
@@ -95,11 +103,7 @@ namespace Inventory_Mgmt_System.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = ex.Message
-                });
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 
@@ -108,7 +112,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             try
             {
-                var updatedReceipt = await _receiptService.UpdateReceiptAsync(id, receiptDto);
+                var updatedReceipt = await _receiptService.UpdateReceiptAsync(id, receiptDto, GetUserId());
                 return Ok(new { success = true, data = updatedReceipt });
             }
             catch (KeyNotFoundException ex)
@@ -130,7 +134,7 @@ namespace Inventory_Mgmt_System.Controllers
         {
             try
             {
-                var result = await _receiptService.DeleteReceiptAsync(id);
+                var result = await _receiptService.DeleteReceiptAsync(id, GetUserId());
                 if (!result)
                     return NotFound(new { success = false, message = "Receipt not found" });
 
@@ -145,15 +149,29 @@ namespace Inventory_Mgmt_System.Controllers
         [HttpGet("details")]
         public async Task<IActionResult> GetAllReceiptDetails()
         {
-            var details = await _receiptService.GetAllReceiptDetailsAsync();
-            return Ok(details);
+            try
+            {
+                var details = await _receiptService.GetAllReceiptDetailsAsync();
+                return Ok(new { success = true, data = details });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet("details/simple")]
         public async Task<IActionResult> GetSimplifiedReceiptDetails()
         {
-            var details = await _receiptService.GetSimplifiedReceiptDetailsAsync();
-            return Ok(details);
+            try
+            {
+                var details = await _receiptService.GetSimplifiedReceiptDetailsAsync();
+                return Ok(new { success = true, data = details });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet("top10qty")]
@@ -162,13 +180,12 @@ namespace Inventory_Mgmt_System.Controllers
             try
             {
                 var details = await _receiptService.GetTop10Item();
-                return Ok(details);
+                return Ok(new { success = true, data = details });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
-
     }
 }

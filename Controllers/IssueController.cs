@@ -102,11 +102,11 @@ namespace Inventory_Mgmt_System.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIssue(Guid id)
+        public async Task<IActionResult> DeleteIssue(string id)
         {
             try
             {
-                var deleted = await _issueService.DeleteIssueAsync(id);
+                var deleted = await _issueService.DeleteIssueAsync(Guid.Parse(id));
                 if (!deleted)
                     return NotFound();
 

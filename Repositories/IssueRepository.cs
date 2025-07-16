@@ -478,6 +478,6 @@ namespace Inventory_Mgmt_System.Repositories
         }
 
 
-
     }
+
 }

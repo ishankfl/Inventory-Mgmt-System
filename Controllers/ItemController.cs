@@ -21,13 +21,15 @@ namespace Inventory_Mgmt_System.Controllers
             _itemService = itemService;
         }
 
-        // GET: api/Item?page=1&limit=10
         [HttpGet]
-        public async Task<IActionResult> GetAllItems([FromQuery] int page = 1, [FromQuery] int limit = 10)
+        public async Task<IActionResult> GetAllItems(
+      [FromQuery] int page = 1,
+      [FromQuery] int limit = 10,
+      [FromQuery] string search = "")
         {
             try
             {
-                var (items, totalCount) = await _itemService.GetAllItemsPaginatedAsync(page, limit);
+                var (items, totalCount) = await _itemService.GetAllItemsPaginatedAsync(page, limit, search);
 
                 var response = new
                 {
