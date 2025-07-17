@@ -21,6 +21,40 @@ namespace Inventory_Mgmt_System.Repositories
             var departments = await connection.QueryAsync<Department>(query);
             return departments.ToList();
         }
+        public async Task<(List<Department> Items, int TotalCount, int TotalPages)> SearchDepartmentsAsync(string? searchTerm, int pageNumber, int pageSize)
+        {
+            using var connection = _dapperDbContext.CreateConnection();
+
+            // Step 1: Get total count of matching rows
+            const string countQuery = @"
+        SELECT COUNT(*) FROM ""Departments""
+        WHERE (@SearchTerm IS NULL OR LOWER(""Name"") LIKE LOWER(CONCAT('%', @SearchTerm, '%')))
+    ";
+
+            var totalCount = await connection.ExecuteScalarAsync<int>(countQuery, new
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm
+            });
+
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+            // Step 2: Get paged, filtered data
+            const string dataQuery = @"
+        SELECT * FROM ""Departments""
+        WHERE (@SearchTerm IS NULL OR LOWER(""Name"") LIKE LOWER(CONCAT('%', @SearchTerm, '%')))
+        ORDER BY ""Name""
+        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY
+    ";
+
+            var departments = await connection.QueryAsync<Department>(dataQuery, new
+            {
+                SearchTerm = string.IsNullOrWhiteSpace(searchTerm) ? null : searchTerm,
+                Offset = (pageNumber - 1) * pageSize,
+                PageSize = pageSize
+            });
+
+            return (departments.ToList(), totalCount, totalPages);
+        }
 
         public async Task<Department?> GetByIdAsync(Guid id)
         {

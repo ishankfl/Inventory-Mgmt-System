@@ -13,5 +13,7 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<Department> CreateDepartmentAsync(DepartmentDto dto, Guid performedByUserId);
         Task<Department?> UpdateDepartmentAsync(Guid id, DepartmentDto dto, Guid performedByUserId);
         Task<bool> DeleteDepartmentAsync(Guid id, Guid performedByUserId);
+        Task<(List<Department> Items, int TotalCount, int TotalPages)> SearchDepartmentsAsync(string? searchTerm, int pageNumber, int pageSize)
+            ;
     }
 }

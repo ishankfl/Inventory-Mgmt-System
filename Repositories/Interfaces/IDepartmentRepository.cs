@@ -13,5 +13,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Department?> GetByNameAsync(string name);
 
         Task<int> TotalNumberOfDepartments();
+
+         Task<(List<Department> Items, int TotalCount, int TotalPages)> SearchDepartmentsAsync(string? searchTerm, int pageNumber, int pageSize);
     }
 }

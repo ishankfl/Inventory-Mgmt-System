@@ -21,6 +21,11 @@ namespace Inventory_Mgmt_System.Services
             return await _repository.GetAllAsync();
         }
 
+        public async Task<(List<Department> Items, int TotalCount, int TotalPages)> SearchDepartmentsAsync(string? searchTerm, int pageNumber, int pageSize)
+
+        {
+            return await _repository.SearchDepartmentsAsync(searchTerm, pageNumber, pageSize);
+        }
         public async Task<Department?> GetDepartmentByIdAsync(Guid id)
         {
             return await _repository.GetByIdAsync(id);
