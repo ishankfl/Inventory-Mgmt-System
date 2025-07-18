@@ -1,4 +1,4 @@
-﻿using Inventory_Mgmt_System.Models;           // Importing model classes (e.g., User)
+﻿/*using Inventory_Mgmt_System.Models;           // Importing model classes (e.g., User)
 using Microsoft.EntityFrameworkCore;          // Importing EF Core features like DbContext and DbSet
 
 namespace Inventory_Mgmt_System.Data
@@ -118,3 +118,4 @@ namespace Inventory_Mgmt_System.Data
 
     }
 }
+*/

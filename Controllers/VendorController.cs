@@ -18,15 +18,6 @@ namespace Inventory_Mgmt_System.Controllers
             _vendorService = vendorService;
         }
 
-        // GET: api/vendor - Get all vendors
-        [HttpGet]
-        public async Task<ActionResult<List<Vendor>>> GetAllVendors()
-        {
-            var vendors = await _vendorService.GetAllVendorsAsync();
-            return Ok(vendors);
-        }
-
-        // GET: api/vendor/{id} - Get a specific vendor by ID
         [HttpGet("{id}")]
         public async Task<ActionResult<Vendor>> GetVendorById(Guid id)
         {
@@ -45,7 +36,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        // POST: api/vendor - Add a new vendor
         [HttpPost]
         public async Task<ActionResult<Vendor>> AddVendor([FromBody] Vendor vendor)
         {
@@ -68,7 +58,6 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        // DELETE: api/vendor/{id} - Delete a vendor by ID
         [HttpDelete("{id}")]
         public async Task<ActionResult<Vendor>> DeleteVendor(Guid id)
         {
@@ -88,26 +77,12 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        // Helper to extract user ID from JWT claims
-        private Guid GetUserId()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
-            {
-                throw new UnauthorizedAccessException("User ID is missing or invalid.");
-            }
-
-            return userId;
-        }
-        // GET: api/vendor?searchTerm=foo&pageNumber=1&pageSize=10
         [HttpGet]
         public async Task<ActionResult> GetVendors([FromQuery] string searchTerm = "", [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
                 var (vendors, totalCount) = await _vendorService.SearchVendorsAsync(searchTerm, pageNumber, pageSize);
-
                 var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
                 var result = new
@@ -121,12 +96,20 @@ namespace Inventory_Mgmt_System.Controllers
 
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log exception as needed
                 return StatusCode(500, "An error occurred while retrieving vendors.");
             }
         }
 
+        private Guid GetUserId()
+        {
+            var userIdClaim = User.FindFirst("id")?.Value;
+
+            if (string.IsNullOrWhiteSpace(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                throw new UnauthorizedAccessException("User ID is missing or invalid.");
+
+            return userId;
+        }
     }
 }
