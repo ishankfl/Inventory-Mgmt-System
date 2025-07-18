@@ -16,5 +16,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<Vendor> GetVendorById(Guid vendorId);
 
         Task<bool> Exists(Guid vendorId);
+
+        Task<(List<Vendor> Vendors, int TotalCount)> SearchVendors(string searchTerm, int pageNumber, int pageSize);
     }
 }

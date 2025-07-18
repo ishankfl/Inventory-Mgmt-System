@@ -89,5 +89,43 @@ namespace Inventory_Mgmt_System.Repositories
                 return exists;
             }
         }
+
+        public async Task<(List<Vendor> Vendors, int TotalCount)> SearchVendors(string searchTerm, int pageNumber, int pageSize)
+        {
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+
+                // Basic search filter (case-insensitive)
+                var searchFilter = "%" + searchTerm.ToLower() + "%";
+
+                // Query to get total count matching search
+                var countQuery = @"
+            SELECT COUNT(*) FROM ""Vendor""
+            WHERE LOWER(""Name"") LIKE @SearchFilter
+               OR LOWER(""Email"") LIKE @SearchFilter;
+        ";
+
+                // Query to get paginated results matching search
+                var dataQuery = @"
+            SELECT * FROM ""Vendor""
+            WHERE LOWER(""Name"") LIKE @SearchFilter
+               OR LOWER(""Email"") LIKE @SearchFilter
+            ORDER BY ""Name""
+            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+        ";
+
+                int offset = (pageNumber - 1) * pageSize;
+
+                // Get total count for pagination
+                var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery, new { SearchFilter = searchFilter });
+
+                // Get paginated data
+                var vendors = await dbConnection.QueryAsync<Vendor>(dataQuery, new { SearchFilter = searchFilter, Offset = offset, PageSize = pageSize });
+
+                return (vendors.ToList(), totalCount);
+            }
+        }
+
     }
 }
