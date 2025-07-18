@@ -9,8 +9,7 @@ namespace Inventory_Mgmt_System.Services
 {
     public class DashboardService : IDashboardService
     {
-        private readonly IProductRepository _productRepository;
-        private readonly IIssueProductRepository _issueRepository;
+       
         private readonly IDepartmentRepository _departmentRepository;
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserRepository _userRepository;
@@ -19,8 +18,7 @@ namespace Inventory_Mgmt_System.Services
         private readonly IIssueService _issueService;
 
         public DashboardService(
-            IProductRepository productRepository,
-            IIssueProductRepository issueRepository,
+           
             IDepartmentRepository departmentRepository,
             ICategoryRepository categoryRepository,
             IUserRepository userRepository,
@@ -28,8 +26,7 @@ namespace Inventory_Mgmt_System.Services
             IReceiptService receiptService,
             IIssueService issueService)
         {
-            _productRepository = productRepository;
-            _issueRepository = issueRepository;
+           
             _departmentRepository = departmentRepository;
             _categoryRepository = categoryRepository;
             _userRepository = userRepository;
