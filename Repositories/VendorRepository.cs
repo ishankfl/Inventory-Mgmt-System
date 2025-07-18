@@ -96,17 +96,14 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                // Basic search filter (case-insensitive)
                 var searchFilter = "%" + searchTerm.ToLower() + "%";
 
-                // Query to get total count matching search
                 var countQuery = @"
             SELECT COUNT(*) FROM ""Vendor""
             WHERE LOWER(""Name"") LIKE @SearchFilter
                OR LOWER(""Email"") LIKE @SearchFilter;
         ";
 
-                // Query to get paginated results matching search
                 var dataQuery = @"
             SELECT * FROM ""Vendor""
             WHERE LOWER(""Name"") LIKE @SearchFilter
@@ -117,10 +114,8 @@ namespace Inventory_Mgmt_System.Repositories
 
                 int offset = (pageNumber - 1) * pageSize;
 
-                // Get total count for pagination
                 var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery, new { SearchFilter = searchFilter });
 
-                // Get paginated data
                 var vendors = await dbConnection.QueryAsync<Vendor>(dataQuery, new { SearchFilter = searchFilter, Offset = offset, PageSize = pageSize });
 
                 return (vendors.ToList(), totalCount);
