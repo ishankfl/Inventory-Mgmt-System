@@ -33,11 +33,10 @@ namespace Inventory_Mgmt_System.Repositories
                 dbConnection.Open();
 
                 string query = @"
-                    INSERT INTO ""vendors"" (""Id"", ""Name"", ""Email"")
+                    INSERT INTO ""Vendor"" (""Id"", ""Name"", ""Email"")
                     VALUES (@Id, @Name, @Email)
                     RETURNING ""Id"";";
 
-                // Ensure Id is set (if not already)
                 if (vendor.Id == Guid.Empty)
                 {
                     vendor.Id = Guid.NewGuid();
@@ -54,7 +53,7 @@ namespace Inventory_Mgmt_System.Repositories
             {
                 dbConnection.Open();
 
-                string selectQuery = @"SELECT * FROM ""vendors"" WHERE ""Id"" = @Id;";
+                string selectQuery = @"SELECT * FROM ""Vendor"" WHERE ""Id"" = @Id;";
                 var existingVendor = await dbConnection.QueryFirstOrDefaultAsync<Vendor>(selectQuery, new { vendor.Id });
 
                 if (existingVendor == null)
@@ -62,7 +61,7 @@ namespace Inventory_Mgmt_System.Repositories
                     throw new KeyNotFoundException($"Vendor with ID {vendor.Id} not found.");
                 }
 
-                string deleteQuery = @"DELETE FROM ""vendors"" WHERE ""Id"" = @Id;";
+                string deleteQuery = @"DELETE FROM ""Vendor"" WHERE ""Id"" = @Id;";
                 await dbConnection.ExecuteAsync(deleteQuery, new { vendor.Id });
 
                 return existingVendor;
@@ -80,13 +79,17 @@ namespace Inventory_Mgmt_System.Repositories
                 return vendor;
             }
         }
-        public async Task<bool> Exists(Guid vendorId)  // Added missing Exists method
+
+        public async Task<bool> Exists(Guid vendorId)
         {
             using (var dbConnection = _dapperDbContext.CreateConnection())
             {
+                dbConnection.Open();
+
                 var query = @"SELECT COUNT(1) FROM ""Vendor"" WHERE ""Id"" = @Id;";
-                var exists = await dbConnection.ExecuteScalarAsync<bool>(query, new { Id = vendorId });
-                return exists;
+                var count = await dbConnection.ExecuteScalarAsync<int>(query, new { Id = vendorId });
+
+                return count > 0;
             }
         }
 
@@ -99,28 +102,26 @@ namespace Inventory_Mgmt_System.Repositories
                 var searchFilter = "%" + searchTerm.ToLower() + "%";
 
                 var countQuery = @"
-            SELECT COUNT(*) FROM ""Vendor""
-            WHERE LOWER(""Name"") LIKE @SearchFilter
-               OR LOWER(""Email"") LIKE @SearchFilter;
-        ";
+                    SELECT COUNT(*) FROM ""Vendor""
+                    WHERE LOWER(""Name"") LIKE @SearchFilter
+                       OR LOWER(""Email"") LIKE @SearchFilter;
+                ";
 
                 var dataQuery = @"
-            SELECT * FROM ""Vendor""
-            WHERE LOWER(""Name"") LIKE @SearchFilter
-               OR LOWER(""Email"") LIKE @SearchFilter
-            ORDER BY ""Name""
-            OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
-        ";
+                    SELECT * FROM ""Vendor""
+                    WHERE LOWER(""Name"") LIKE @SearchFilter
+                       OR LOWER(""Email"") LIKE @SearchFilter
+                    ORDER BY ""Name""
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                ";
 
                 int offset = (pageNumber - 1) * pageSize;
 
                 var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery, new { SearchFilter = searchFilter });
-
                 var vendors = await dbConnection.QueryAsync<Vendor>(dataQuery, new { SearchFilter = searchFilter, Offset = offset, PageSize = pageSize });
 
                 return (vendors.ToList(), totalCount);
             }
         }
-
     }
 }
