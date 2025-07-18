@@ -42,6 +42,23 @@ namespace Inventory_Mgmt_System.Controllers
                 return Conflict(new { message = ex.Message });
             }
         }
+        // GET: api/Department/search
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchDepartments([FromQuery] string? searchTerm="", [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var (items, totalCount, totalPages) = await _departmentService.SearchDepartmentsAsync(searchTerm, pageNumber, pageSize);
+
+            var response = new
+            {
+                data = items,
+                totalCount,
+                totalPages,
+                currentPage = pageNumber,
+                pageSize
+            };
+
+            return Ok(response);
+        }
 
         // GET: api/Department
         [HttpGet]
