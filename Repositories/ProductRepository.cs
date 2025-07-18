@@ -2,8 +2,6 @@
 using Inventory_Mgmt_System.Data;
 using Inventory_Mgmt_System.Models;
 using Inventory_Mgmt_System.Repositories.Interfaces;
-using Server.Models;
-using Server.Services.Data;
 using System.Data;
 
 namespace Server.Services.Repositories.ProductServices

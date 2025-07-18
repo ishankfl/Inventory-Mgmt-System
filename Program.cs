@@ -20,8 +20,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register AppDbContext with the dependency injection container.  Configure it to use PostgreSQL as the database provider,  with the connection string read from appsettings.json ("DefaultConnection").
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+/*builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));*/
 
 builder.Services.AddAuthentication(options =>
 {
@@ -66,15 +66,15 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductService, ProductServices>();
+/*builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductServices>();*/
 
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
-
+/*
 builder.Services.AddScoped<IIssueProductRepository, IssueProductRepository>();
-builder.Services.AddScoped<IIssueProductService, IssueProductService>();
+builder.Services.AddScoped<IIssueProductService, IssueProductService>();*/
 // and use it:
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
