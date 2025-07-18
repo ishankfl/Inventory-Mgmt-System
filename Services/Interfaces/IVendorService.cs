@@ -8,5 +8,6 @@ namespace Inventory_Mgmt_System.Services.Interfaces
         Task<Vendor> GetVendorByIdAsync(Guid vendorId);
         Task<Vendor> AddVendorAsync(Vendor vendor, Guid performedByUserId);
         Task<Vendor> DeleteVendorAsync(Guid vendorId, Guid performedByUserId);
+        Task<(List<Vendor> Vendors, int TotalCount)> SearchVendorsAsync(string searchTerm, int pageNumber, int pageSize);
     }
 }

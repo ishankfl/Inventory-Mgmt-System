@@ -101,5 +101,13 @@ namespace Inventory_Mgmt_System.Services
                 @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
                 RegexOptions.IgnoreCase);
         }
+        public async Task<(List<Vendor> Vendors, int TotalCount)> SearchVendorsAsync(string searchTerm, int pageNumber, int pageSize)
+        {
+            if (pageNumber <= 0) pageNumber = 1;
+            if (pageSize <= 0) pageSize = 10;
+
+            return await _vendorRepository.SearchVendors(searchTerm, pageNumber, pageSize);
+        }
+
     }
 }

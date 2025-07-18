@@ -100,5 +100,33 @@ namespace Inventory_Mgmt_System.Controllers
 
             return userId;
         }
+        // GET: api/vendor?searchTerm=foo&pageNumber=1&pageSize=10
+        [HttpGet]
+        public async Task<ActionResult> GetVendors([FromQuery] string searchTerm = "", [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var (vendors, totalCount) = await _vendorService.SearchVendorsAsync(searchTerm, pageNumber, pageSize);
+
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+                var result = new
+                {
+                    Data = vendors,
+                    TotalCount = totalCount,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = totalPages
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Log exception as needed
+                return StatusCode(500, "An error occurred while retrieving vendors.");
+            }
+        }
+
     }
 }
