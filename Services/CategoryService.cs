@@ -22,7 +22,7 @@ namespace Inventory_Mgmt_System.Services
             {
                 Id = Guid.NewGuid(),
                 Name = categorydto.Name,
-                UserId = categorydto.UserId,
+                UserId = performedByUserId,
                 Description = categorydto.Description,
             };
 

@@ -142,7 +142,7 @@ namespace Inventory_Mgmt_System.Repositories
 
                 const string updateQuery = @"
                     UPDATE ""Items""
-                    SET ""Name"" = @Name, ""Unit"" = @Unit
+                    SET ""Name"" = @Name, ""Unit"" = @Unit, ""Price"" = @Price
                     WHERE ""Id"" = @Id;";
 
                 await dbConnection.ExecuteAsync(updateQuery, item);
