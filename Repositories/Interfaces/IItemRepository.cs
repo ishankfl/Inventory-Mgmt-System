@@ -16,5 +16,7 @@ namespace Inventory_Mgmt_System.Repositories.Interfaces
         Task<bool> Exists(Guid id);
 
         Task<int> GetTotalCountOfItems();
+
+        Task<List<Item>> GetAllItemNamesAndIdsAsync();
     }
 }

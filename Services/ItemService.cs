@@ -23,6 +23,11 @@ namespace Inventory_Mgmt_System.Services
             _receiptService = receiptService;
             _activityServices = activityServices;
         }
+
+        public async Task<List<Item>> GetAllItemNamesAndIdsAsync()
+        {
+            return await _itemRepository.GetAllItemNamesAndIdsAsync();
+         }
         public async Task<(List<Item> Items, int TotalCount)> GetAllItemsPaginatedAsync(int page, int limit, string search)
         {
             return await _itemRepository.GetAllPaginatedAsync(page, limit, search);

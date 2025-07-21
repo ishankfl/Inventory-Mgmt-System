@@ -35,6 +35,27 @@ namespace Inventory_Mgmt_System.Repositories
                         return items;
                     }
                 }*/
+        public async Task<List<Item>> GetAllItemNamesAndIdsAsync()
+        {
+            using (var dbConnection = _dapperDbContext.CreateConnection())
+            {
+                dbConnection.Open();
+
+                var itemQuery = @"SELECT * FROM ""Items"" ORDER BY ""Name"";";
+                var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
+
+                var items = (await dbConnection.QueryAsync<Item>(itemQuery)).ToList();
+
+                foreach (var item in items)
+                {
+                    var stock = await dbConnection.QueryAsync<Stock>(stockQuery, new { ItemId = item.Id });
+                    item.Stock = stock.ToList();
+                }
+
+                return items;
+            }
+        }
+
         public async Task<(List<Item> Items, int TotalCount)> GetAllPaginatedAsync(int page, int limit, string search = "")
         {
             using (var dbConnection = _dapperDbContext.CreateConnection())
@@ -43,12 +64,15 @@ namespace Inventory_Mgmt_System.Repositories
 
                 int offset = (page - 1) * limit;
 
-                var query = @"SELECT * FROM ""Items"" 
-                     WHERE @Search = '' OR LOWER(""Name"") LIKE LOWER('%' || @Search || '%') 
-                     ORDER BY ""Id"" OFFSET @Offset LIMIT @Limit;";
+                var query = @"
+            SELECT * FROM ""Items""
+            WHERE LOWER(""Name"") LIKE LOWER('%' || @Search || '%')
+            ORDER BY ""CreatedDate"" DESC
+            OFFSET @Offset LIMIT @Limit;";
 
-                var countQuery = @"SELECT COUNT(*) FROM ""Items"" 
-                          WHERE @Search = '' OR LOWER(""Name"") LIKE LOWER('%' || @Search || '%');";
+                var countQuery = @"
+            SELECT COUNT(*) FROM ""Items""
+            WHERE LOWER(""Name"") LIKE LOWER('%' || @Search || '%');";
 
                 var stockQuery = @"SELECT * FROM ""Stock"" WHERE ""ItemId"" = @ItemId;";
 
@@ -56,10 +80,13 @@ namespace Inventory_Mgmt_System.Repositories
                 {
                     Offset = offset,
                     Limit = limit,
-                    Search = search
+                    Search = search ?? ""
                 })).ToList();
 
-                var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery, new { Search = search });
+                var totalCount = await dbConnection.ExecuteScalarAsync<int>(countQuery, new
+                {
+                    Search = search ?? ""
+                });
 
                 foreach (var item in items)
                 {
@@ -70,6 +97,7 @@ namespace Inventory_Mgmt_System.Repositories
                 return (items, totalCount);
             }
         }
+
 
 
 

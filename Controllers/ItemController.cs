@@ -65,6 +65,19 @@ namespace Inventory_Mgmt_System.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("allname")]
+        public async Task<IActionResult> GetAllItemNamesAndIdsAsync()
+        {
+            try
+            {
+                var items = await _itemService.GetAllItemNamesAndIdsAsync();
+                return Ok(items);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { error = e.ToString() });
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> AddItem([FromBody] ItemDto item)
@@ -88,6 +101,7 @@ namespace Inventory_Mgmt_System.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
 
         // PUT: api/Item/{id}
         [HttpPut("{id}")]
