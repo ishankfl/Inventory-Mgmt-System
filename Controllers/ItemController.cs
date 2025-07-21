@@ -66,12 +66,16 @@ namespace Inventory_Mgmt_System.Controllers
             }
         }
 
-        // POST: api/Item
         [HttpPost]
         public async Task<IActionResult> AddItem([FromBody] ItemDto item)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(new { errors });
+            }
 
             try
             {
