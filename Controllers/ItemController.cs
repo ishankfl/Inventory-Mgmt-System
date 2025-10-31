@@ -105,7 +105,7 @@ namespace Inventory_Mgmt_System.Controllers
 
         // PUT: api/Item/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateItem(Guid id, [FromBody] ItemDto item)
+        public async Task<IActionResult> UpdateItem(string id, [FromBody] ItemDto item)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -113,7 +113,7 @@ namespace Inventory_Mgmt_System.Controllers
             try
             {
                 var userId = GetUserId();
-                var updatedItem = await _itemService.UpdateItemAsync(id, item, userId);
+                var updatedItem = await _itemService.UpdateItemAsync(Guid.Parse(id), item, userId);
                 return Ok(updatedItem);
             }
             catch (KeyNotFoundException ex)
